@@ -1,3 +1,17 @@
+---
+jupytext:
+  formats: ipynb,md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.11.4
+kernelspec:
+  display_name: Python 3
+  language: python
+  name: python3
+---
+
 # Sentiment Analysis on notable speeches of the last decade
 
 ---
@@ -8,9 +22,15 @@ You will first learn how to process textual data and convert it to a numeric for
 
 Your deep learning model - The VanillaRNN is the simplest form of a Recurrent Neural Network will learn to classify a piece of text as positive or negative from the IMDB reviews dataset. The dataset contains 40,000 training and 10,000 test reviews and corresponding labels. Based on the numeric representations of these reviews and their corresponding labels <a href = 'https://en.wikipedia.org/wiki/Supervised_learning'> (supervised learning) </a> the neural network will be trained to learn the sentiment using forward propagation and backpropagaton through time since we are dealing with sequential data here. The output will be a vector of size 2 containing the probabilities for both positive and negative sentiments
 
++++
+
 ![rnn-2.jpg](attachment:rnn-2.jpg)
 
++++
+
 Today, Deep Learning is getting adopted in everyday life and now it is more important to ensure that decisions that have been taken using AI are not reflecting discriminatory behavior towards a set of populations. It is important to take fairness into consideration while consuming the output from AI. Throughout the tutorial we'll try to question all the steps in our pipeline from an ethics point of view.
+
++++
 
 ## Prerequisites 
 
@@ -33,6 +53,7 @@ In addition to NumPy, you will be utilizing the following Python standard module
 
 This tutorial can be run locally in an isolated environment, such as [Virtualenv](https://virtualenv.pypa.io/en/stable/) or [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html). You can use [Jupyter Notebook or JupyterLab](https://jupyter.org/install) to run each notebook cell. Don't forget to [set up NumPy](https://numpy.org/doc/stable/user/absolute_beginners.html#installing-numpy) and [Matplotlib](https://matplotlib.org/users/installing.html#installing-an-official-release).
 
++++
 
 ## Table of contents
 
@@ -47,6 +68,8 @@ This tutorial can be run locally in an isolated environment, such as [Virtualenv
 4. Perform sentiment analysis on collected speeches 
 
 5. Next steps
+
++++
 
 ---
 
@@ -68,17 +91,17 @@ Before we begin there are a few pointers you should always keep in mind before c
 In this section, you will be collecting two different datasets, the IMDB movie reviews dataset and the second contains 10 speeches of activists from different countries around the world, historical and present and with a focus on different topics. The former would be used to train the deep learning model while the latter will be used to perform sentiment analysis on.
    > The IMDb platform allows the usage of their public datasets for personal and non-commercial use. We did our best to ensure that these reviews do not contain any of the aforementioned sensitive topics pertaining to the reviewer.
 
++++
+
 ### Loading the IMDB reviews dataset
 
-Load the data into a pandas dataframe. First check if the data is stored locally; if not, then download it. The dataset can be found on the website by [Stanford AI Lab](http://ai.stanford.edu/~amaas/data/sentiment/). 
+Load the data into a pandas dataframe. First check if the data is stored locally; if not, then download it. The dataset can be found on the website by [Stanford AI Lab](http://ai.stanford.edu/~amaas/data/sentiment/).
 
-
-```python
+```{code-cell} ipython3
 import pandas as pd
 
 imdb_filepath = 'IMDB Dataset.csv'
 imdb_data = pd.read_csv(imdb_filepath)
-imdb_data['sentiment'][0]
 ```
 
 ### Collecting and loading the speech transcripts
@@ -96,15 +119,13 @@ We have chosen speeches by activists around the globe talking about issues like 
 | Violence against LGBTQA+                         | Michelle Bachelet       | United Nations office of high commisioner official website |
 | I have a dream                                   | Martin Luther King      | Brittanica official website                                |
 |                                                  |                         |                                                            |
-|                                                  |                         |                                                            
+|                                                  |                         |
 
-
-```python
+```{code-cell} ipython3
 speech_filepath = 'speeches.csv'
 
 speech_data = pd.read_csv(speech_filepath)
 speech_list = speech_data['speech'].tolist()
-speech_data
 ```
 
 ---
@@ -113,8 +134,7 @@ speech_data
 
 1. Before converting your text into vectors, it is important to clean it and remove all unhelpful parts a.k.a the noise from your data by converting all characters to lowercase, removing html tags, brackets and stop words. Without this cleaning step the dataset is often a cluster of words that the computer doesn't understand.
 
-
-```python
+```{code-cell} ipython3
 import re
 import string
 
@@ -150,8 +170,7 @@ data_without_stopwords['clean_review'] = data_without_stopwords['clean_review'].
 
 2. Split the data into training and test sets using the standard notation of x for data and y for labels, calling the training and test set reviews X_train and X_test, and the labels y_train and y_test:
 
-
-```python
+```{code-cell} ipython3
 import numpy as np
 
 reviews_list = data_without_stopwords['clean_review'].to_numpy()
@@ -174,10 +193,9 @@ y = np.array(list(map(lambda x: 1 if x=="positive" else 0, sentiment)))
 X_train, Y_train,X_test, Y_test = shuffle_split_data(reviews_list, y, split_percentile=30)
 ```
 
-3. So far the text we have is in its raw form, it needs to be broken apart into chunks called tokens because the most common way of processing language happens at the token level. This process of separating a piece of text into smaller units is called Tokenisation. The tokens obtained are then used to build a vocabulary. Vocabulary refers to a set of all tokens in the corpus along with a unique index allotted to each of them.  
+3. So far the text we have is in its raw form, it needs to be broken apart into chunks called tokens because the most common way of processing language happens at the token level. This process of separating a piece of text into smaller units is called Tokenisation. The tokens obtained are then used to build a vocabulary. Vocabulary refers to a set of all tokens in the corpus along with a unique index allotted to each of them.
 
-
-```python
+```{code-cell} ipython3
 class Vocabulary:
   def __init__(self):
     PAD_token = 0   # Used for padding short sentences
@@ -230,10 +248,9 @@ for speech in speech_list:
 ```
 
 4. A word embedding is a learned representation for text where words that have the same meaning have a similar representation. Individual words are represented as real-valued vectors in a predefined vector space. GloVe is n unsupervised algorithm developed by Stanford for generating word embeddings by generating global word-word co-occurence matrix from a corpus. You can download the zipped files containing the embeddings from [https://nlp.stanford.edu/projects/glove/](https://nlp.stanford.edu/projects/glove/). Here you can choose any of the four options for different sizes or training datasets
- >The GloVe word embeddings include sets that were trained on billions of tokens, some up to 840 billion tokens. These algorithms exhibit stereotypical biases, such as gender bias which can be traced back to the original training data. For example certain occupations seem to be more biased towards a particular gender, reinforcing problematic stereotypes. The nearest solution to this problem are some de-biasing algorithms as the one presented in https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1184/reports/6835575.pdf which one can use on embeddings of their choice to mitigate bias, if present. 
+ >The GloVe word embeddings include sets that were trained on billions of tokens, some up to 840 billion tokens. These algorithms exhibit stereotypical biases, such as gender bias which can be traced back to the original training data. For example certain occupations seem to be more biased towards a particular gender, reinforcing problematic stereotypes. The nearest solution to this problem are some de-biasing algorithms as the one presented in https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1184/reports/6835575.pdf which one can use on embeddings of their choice to mitigate bias, if present.
 
-
-```python
+```{code-cell} ipython3
 # Creates a dictionary mapping each
 # word to its corresponding embedding 
 def loadGloveModel(File):
@@ -251,10 +268,9 @@ def loadGloveModel(File):
 word_to_vec_map = loadGloveModel('glove.6B.300d.txt')
 ```
 
-5. Now you'll build separate matrices for the imdb dataset and the speech dataset where each row corresponds to a unique word and maps its word embedding to the unique index it was allotted in the vocabulary. 
+5. Now you'll build separate matrices for the imdb dataset and the speech dataset where each row corresponds to a unique word and maps its word embedding to the unique index it was allotted in the vocabulary.
 
-
-```python
+```{code-cell} ipython3
 # Create a matrix where each row contains 
 # the embedding of the word having index number 
 # equal to the row number 
@@ -275,10 +291,9 @@ imdb_emb_matrix = emb_matrix(word_to_vec_map, imdb_voc)
 speech_emb_matrix = emb_matrix(word_to_vec_map, speech_voc)
 ```
 
-6. Since our mapping defined in the function above is between word indexes and embeddings, we will have to transform the input to our neural network and replace each word in it by its corresponding word index 
+6. Since our mapping defined in the function above is between word indexes and embeddings, we will have to transform the input to our neural network and replace each word in it by its corresponding word index
 
-
-```python
+```{code-cell} ipython3
 # Given word indices, we create their 
 # corresponding word embedding matrix 
 def fetch_embeddings (X_indices, emb_matrix):
@@ -306,7 +321,7 @@ def transform_input (text_input, maxlen, vocabulary):
             for i in range(maxlen-text_len):
                 text_indices.append(0)
         text_indices = np.array(text_indices)
-        text_input_indices[index, :] = (text_indices)
+        text_input_indices[index, :] = text_indices
 
     return text_input_indices
 
@@ -320,6 +335,8 @@ speech_indices = transform_input(speech_list, speech_maxlen, speech_voc)
 
 ## 3. Build the Deep Learning Model
 
++++
+
 It’s time to start implementing our RNN! You will have to first familiarize yourself with some high-level concepts of the basic building blocks of a deep learning model. You can refer to the [Deep learning on MNIST from scratch tutorial](https://numpy.org/numpy-tutorials/content/tutorial-deep-learning-on-mnist.html) for the same. 
 
 You will then learn how a Recurrent Neural Network differs from a plain Neural Network and what makes it so suitable for processing sequential data. Afterwards, you will construct the building blocks of a simple deep learning model in Python and NumPy and train it to learn to classify the sentiment of a piece of text as positive or negative with a certain level of accuracy
@@ -332,7 +349,9 @@ In a RNN the information cycles through a loop. When it makes a decision, it con
 
 ![Screenshot%202021-08-02%20at%202.14.18%20PM.png](attachment:Screenshot%202021-08-02%20at%202.14.18%20PM.png)
 
-The hidden layer represented by the color green is a representation of the previous inputs and keeps on getting updated as we move ahead in the sequence. Let's go over the model architecture and the training summary in more detail in the section below. 
+The hidden layer represented by the color green is a representation of the previous inputs and keeps on getting updated as we move ahead in the sequence. Let's go over the model architecture and the training summary in more detail in the section below.
+
++++
 
 ### Model Architecture and Training Summary
 
@@ -368,11 +387,9 @@ The hidden layer represented by the color green is a representation of the previ
 >    Since the network contains tensor operations and weight matrices, backpropagation uses the [chain rule](https://en.wikipedia.org/wiki/Chain_rule).
 >
 >    With each iteration (epoch) of the neural network training, this forward and backward propagation cycle adjusts the weights, which is reflected in the accuracy and error metrics. As you train the model, your goal is to minimize the error and maximize the accuracy on the training data, where the model learns from, as well as the test data, where you evaluate the model.
-> One major difference between 
+> One major difference between
 
-
-
-```python
+```{code-cell} ipython3
 import numpy as cp
 from numpy.random import randn
 from numpy.random import random
@@ -516,8 +533,7 @@ parameters["bh"] = cp.load('weights/bh_adv.npy')
 parameters["by"] = cp.load('weights/by_adv.npy')
 ```
 
-
-```python
+```{code-cell} ipython3
 for epoch in range(epochs):
     
     # Obtain loss and accuracy for each epoch
