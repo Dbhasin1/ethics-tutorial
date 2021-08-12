@@ -15,7 +15,7 @@ kernelspec:
 # Sentiment Analysis on notable speeches of the last decade
 
 ---
-
+ 
 This tutorial demonstrates how to build a simple <a href = 'https://en.wikipedia.org/wiki/Recurrent_neural_network'> Vanilla Recurrent Neural Network </a> from scratch in NumPy to perform sentiment analysis on a socially relevant and ethically acquired dataset
 
 You will first learn how to process textual data and convert it to a numeric format that the machine understands. As a part of the data preprocessing, you will also employ techniques such as text summarisation which will produce a brief representation of the text and finally sentiment analysis will deduce the emotion expressed in the text. 
