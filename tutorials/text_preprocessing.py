@@ -5,21 +5,53 @@ import re
 import string 
 
 class TextPreprocess:
-    def __init__(self, filepath, emb_path):
-        self.filepath = filepath
+    """Text Preprocessing for a Natural Language Processing model.
+
+    Attributes
+    ----------
+    emb_path : str
+        Path to the word embedding file.
+    word2index : :obj:`dict` of :obj:`str`
+        Mapping between word and corresponding index.
+    word2count : :obj:`dict` of :obj:`str`
+        Mapping between word and number of occurences.
+    index2word : :obj:`dict` of :obj:`int`
+        Mapping between index and corresponding word. 
+    num_words : int
+        Counter for total words in text.
+    maxlen : int
+        Maximum length of each subsample of text data 
+
+    """
+    def __init__(self, emb_path):
         self.emb_path = emb_path
-        self.file_df = pd.read_csv(self.filepath)
-        PAD_token = 0   # Used for padding short sentences
-        SOS_token = 1   # Start-of-sentence token
-        EOS_token = 2   # End-of-sentence token
         self.word2index = {}
         self.word2count = {}
-        self.index2word = {PAD_token: "PAD", SOS_token: "SOS", EOS_token: "EOS"}
+        self.index2word = {0: "PAD", 1: "SOS", 2: "EOS"}
         self.num_words = 0
         self.maxlen = 150
 
-    def cleantext(self, text_column, remove_stopwords = True, remove_punc = True, target_column = None):
-        data = self.file_df
+    def cleantext(self, df, text_column, remove_stopwords = True, remove_punc = True):
+        """Function to clean text data by removing stopwords, tags and punctuation.
+
+        Parameters
+        ----------
+        df : pandas dataframe 
+            The dataframe housing the input data.
+        text_column : str
+            Column in dataframe whose text is to be cleaned.
+        remove_stopwords : bool
+            if True, remove stopwords from text
+        remove_punc : bool
+            if True, remove punctuation suymbols from text
+
+        Returns
+        -------
+        Numpy array 
+            Cleaned text.
+
+        """
+        data = df
         # converting all characters to lowercase 
         data[text_column] = data[text_column].str.lower()
 
@@ -52,14 +84,28 @@ class TextPreprocess:
             data_without_stopwords[f'clean_{text_column}'] = data_without_stopwords[f'clean_{text_column}'].str.replace('[{}]'.format(string.punctuation), ' ')
 
         X = data_without_stopwords[f'clean_{text_column}'].to_numpy()
-        #self.maxlen = max([len(i) for i in X])
-        if target_column:
-            y = data_without_stopwords[f'{target_column}'].to_numpy()
-            return X, y
-        else:
-            return X 
+
+        return X 
 
     def split_data (self, X, y, split_percentile):
+        """Function to split data into training and testing data.
+
+        Parameters
+        ----------
+        X : Numpy Array
+            Contains textual data.
+        y : Numpy Array
+            Contains target data.
+        split_percentile : int
+            Proportion of training to testing data.
+         
+
+        Returns
+        -------
+        Tuple 
+            Contains numpy arrays of test and training data.
+
+        """
         y = np.array(list(map(lambda x: 1 if x=="positive" else 0, y)))
         arr_rand = np.random.rand(X.shape[0])
         split = arr_rand < np.percentile(arr_rand, split_percentile)
@@ -68,11 +114,18 @@ class TextPreprocess:
         X_test =  X[~split]
         y_test = y[~split]
 
-        return X_train, y_train, X_test, y_test
+        return (X_train, y_train, X_test, y_test)
 
-    # First entry of word into vocabulary
-    # Word exists; increase word count
-    def _add_word(self, word):
+
+    def add_word(self, word):
+        """Function to allot unique index to word.
+
+        Parameters
+        ----------
+        word : str
+            To be added in the vocabulary.
+
+        """
         if word not in self.word2index:
             self.word2index[word] = self.num_words
             self.word2count[word] = 1
@@ -81,30 +134,89 @@ class TextPreprocess:
         else:
             self.word2count[word] += 1
 
-    # Find word corresponding to given index
+
     def to_word(self, index):
+        """Function to retrieve corresponding word.
+
+        Parameters
+        ----------
+        index : int 
+            integer representation of a word.
+
+        Returns
+        -------
+        str
+            word corresponding to given index.
+
+        """
         return self.index2word[index]
 
-    # Find word corresponding to given word
+
     def to_index(self, word): 
+        """Function to retrieve corresponding index.
+
+        Parameters
+        ----------
+        word : str 
+            given word.
+
+        Returns
+        -------
+        int
+            index corresponding to given word.
+
+        """
         return self.word2index[word]
 
     def create_voc(self, x):
+        """Function to create corpus's vocabulary.
+
+        Parameters
+        ----------
+        x : :obj:`list` of :obj:`str`
+            contains input textual data.
+
+        Returns
+        -------
+        Dict
+            mapping of all unique indices to corresponding words in text corpus.
+
+        """
         for sample in x:
             #print(sample)
             tokens = re.split(r"([-\s.,;!?])+", sample)
             words = [x for x in tokens if (x not in '- \t\n.,;!?\\' and '\\' not in x)]
             for token in words:
-                self._add_word(token)
-        return self.index2word
+                self.add_word(token)
     
     def sent_tokeniser (self, x):
+        """Function to split text into sentences.
+
+        Parameters
+        ----------
+        x : str
+            piece of text
+
+        Returns
+        -------
+        list 
+            sentences with punctuation removed.
+
+        """
         sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', x)
         sentences.pop()
         sentences_cleaned = [re.sub(r'[^\w\s]', '', x) for x in sentences]
         return sentences_cleaned 
 
-    def _loadGloveModel(self):
+    def loadGloveModel(self):
+        """Function to read from the word embedding file.
+
+        Returns
+        -------
+        Dict 
+            mapping from word to corresponding word embedding.
+
+        """
         print("Loading Glove Model")
         File = self.emb_path
         f = open(File,'r')
@@ -118,7 +230,15 @@ class TextPreprocess:
         return gloveModel
 
     def emb_matrix (self):
-        word_to_vec_map = self._loadGloveModel()
+        """Function to map word index and word embedding.
+
+        Returns
+        -------
+        Numpy array 
+            Each row contains word embedding of a word with index = row number.
+
+        """
+        word_to_vec_map = self.loadGloveModel()
         words_to_index = self.word2index
         vocab_len = len(words_to_index)
         embed_vector_len = word_to_vec_map['moon'].shape[0]
@@ -133,6 +253,20 @@ class TextPreprocess:
 
 
     def transform_input(self, text_data):
+        """Function to replace words with corresponding word indices.
+           Converts all sub-samples to same length.
+
+        Parameters
+        ----------
+        text_data ::obj:`array` of :obj:`str`
+            Contains textual data
+            
+        Returns
+        -------
+        Numpy array 
+            indice representation of each text sub-sample.
+
+        """
         text_input_indices = np.zeros((len(text_data), self.maxlen))
         indexes = []
         for index, text in enumerate(text_data):
@@ -141,7 +275,6 @@ class TextPreprocess:
                 if word in self.word2index:
                     text_indices.append(self.to_index(word))
             text_len = len(text_indices)
-            #print('maxlen', self.maxlen)
             if text_len<=self.maxlen:
                 for i in range(self.maxlen-text_len):
                     text_indices.append(0)
@@ -151,14 +284,3 @@ class TextPreprocess:
             text_input_indices[index, :] = text_indices
 
         return text_input_indices
-
-
-
-
-    
-
-       
-
-
-
-    
