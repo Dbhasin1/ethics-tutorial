@@ -16,15 +16,13 @@ kernelspec:
 
 ---
 
-This tutorial demonstrates how to build a simple <a href = 'https://en.wikipedia.org/wiki/Long_short-term_memory'> Long Short Term memory network (LSTM) </a> from scratch in NumPy to perform sentiment analysis on a socially relevant and ethically acquired dataset
+This tutorial demonstrates how to build a simple <a href = 'https://en.wikipedia.org/wiki/Long_short-term_memory'> Long Short Term memory network (LSTM) </a> from scratch in NumPy to perform sentiment analysis on a socially relevant and ethically acquired dataset.
 
-You will first process textual data and convert it to a numeric format that the machine understands. As a part of the data preprocessing, you will clean the text and denoise it by removing stopwords, punctuation and HTML tags. You will then build a dictionary and allot a unique index to each word which will be helpful when you replace them with their pretrained numeric representations a.k.a word embeddings. 
-
-Your deep learning model - The LSTM is a form of a Recurrent Neural Network and will learn to classify a piece of text as positive or negative from the IMDB reviews dataset. The dataset contains 40,000 training and 10,000 test reviews and corresponding labels. Based on the numeric representations of these reviews and their corresponding labels <a href = 'https://en.wikipedia.org/wiki/Supervised_learning'> (supervised learning) </a> the neural network will be trained to learn the sentiment using forward propagation and backpropagaton through time since we are dealing with sequential data here. The output will be a vector containing the probabilities that the text samples are positive. 
+Your deep learning model - The LSTM is a form of a Recurrent Neural Network and will learn to classify a piece of text as positive or negative from the IMDB reviews dataset. The dataset contains 40,000 training and 10,000 test reviews and corresponding labels. Based on the numeric representations of these reviews and their corresponding labels <a href = 'https://en.wikipedia.org/wiki/Supervised_learning'> (supervised learning) </a> the neural network will be trained to learn the sentiment using forward propagation and backpropagaton through time since we are dealing with sequential data here. The output will be a vector containing the probabilities that the text samples are positive.
 
 +++
 
-> Today, Deep Learning is getting adopted in everyday life and now it is more important to ensure that decisions that have been taken using AI are not reflecting discriminatory behavior towards a set of populations. It is important to take fairness into consideration while consuming the output from AI. Throughout the tutorial we'll try to question all the steps in our pipeline from an ethics point of view.
+Today, Deep Learning is getting adopted in everyday life and now it is more important to ensure that decisions that have been taken using AI are not reflecting discriminatory behavior towards a set of populations. It is important to take fairness into consideration while consuming the output from AI. Throughout the tutorial we'll try to question all the steps in our pipeline from an ethics point of view.
 
 +++
 
@@ -32,11 +30,9 @@ Your deep learning model - The LSTM is a form of a Recurrent Neural Network and 
 
 ---
 
-You are expected to be familiar with the language python, array manipulation with NumPy, linear algebra and Calculus. You should also be familiar with how Neural Networks work.
+You are expected to be familiar with the Python programming language and array manipulation with NumPy. In addition, some understanding of Linear Algebra and Calculus is recommended. You should also be familiar with how Neural Networks work. For reference, you can visit the [Python](https://docs.python.org/dev/tutorial/index.html), [Linear algebra on n-dimensional arrays](https://numpy.org/doc/stable/user/tutorial-svd.html) and [Calculus](https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/multivariable-calculus.html) tutorials.
 
-To refresh your memory you can take the [Python](https://docs.python.org/dev/tutorial/index.html), [Linear algebra on n-dimensional arrays](https://numpy.org/doc/stable/user/tutorial-svd.html) and [Calculus](https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/multivariable-calculus.html) tutorials. implemented.
-
-You are advised to read the [Deep learning](http://www.cs.toronto.edu/~hinton/absps/NatureDeepReview.pdf) paper published in 2015 by Yann LeCun, Yoshua Bengio, and Geoffrey Hinton who are regarded as some of the pioneers of the field. You should also consider reading [the d2l.ai book](https://d2l.ai/chapter_recurrent-neural-networks/index.html), which is an interactive deep learning book with multi-framework code, math, and discussions. You can also go through the [Deep learning on MNIST from scratch tutorial](https://numpy.org/numpy-tutorials/content/tutorial-deep-learning-on-mnist.html) to understand how a basic neural network is implemented from scratch.
+To get a refresher on Deep Learning basics, You should consider reading [the d2l.ai book](https://d2l.ai/chapter_recurrent-neural-networks/index.html), which is an interactive deep learning book with multi-framework code, math, and discussions. You can also go through the [Deep learning on MNIST from scratch tutorial](https://numpy.org/numpy-tutorials/content/tutorial-deep-learning-on-mnist.html) to understand how a basic neural network is implemented from scratch.
 
 In addition to NumPy, you will be utilizing the following Python standard modules for data loading and processing:
 - [`pandas`](https://pandas.pydata.org/docs/) for handling dataframes 
@@ -46,7 +42,7 @@ In addition to NumPy, you will be utilizing the following Python standard module
     as well as:
 - [Matplotlib](https://matplotlib.org/) for data visualization
 
-This tutorial can be run locally in an isolated environment, such as [Virtualenv](https://virtualenv.pypa.io/en/stable/) or [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html). You can use [Jupyter Notebook or JupyterLab](https://jupyter.org/install) to run each notebook cell. Don't forget to [set up NumPy](https://numpy.org/doc/stable/user/absolute_beginners.html#installing-numpy) and [Matplotlib](https://matplotlib.org/users/installing.html#installing-an-official-release).
+This tutorial can be run locally in an isolated environment, such as [Virtualenv](https://virtualenv.pypa.io/en/stable/) or [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html). You can use [Jupyter Notebook or JupyterLab](https://jupyter.org/install) to run each notebook cell.
 
 +++
 
@@ -114,12 +110,12 @@ We made sure to include different demographics in our data and included a range 
 | The speech that silenced the world for 5 minutes | Severn Suzuki           | NTU blogs                                                  |
 | The Hope Speech                                  | Harvey Milk             | University of Maryland archives                            |
 | Violence against LGBTQA+                         | Michelle Bachelet       | United Nations office of high commisioner official website |
-| I have a dream                                   | Martin Luther King      | Brittanica official website                                                                                                                    
+| I have a dream                                   | Martin Luther King      | Brittanica official website
 
 +++
 
 ## 2. Preprocess the datasets
->Preprocessing data is an extremely crucial step before building any Deep learning model, however in an attempt to keep the tutorial focused on building the model, we will not dive deep into the code for preprocessing. Given below is a brief overview of all the steps we undertake to clean our data and convert it to its numeric representation. The code is public and we encourage you to look it up for a better understanding of this section
+>Preprocessing data is an extremely crucial step before building any Deep learning model, however in an attempt to keep the tutorial focused on building the model, we will not dive deep into the code for preprocessing. Given below is a brief overview of all the steps we undertake to clean our data and convert it to its numeric representation. The [code](https://github.com/Dbhasin1/ethics-tutorial/blob/lstm-update/tutorials/text_preprocessing.py) is public and we encourage you to look it up for a better understanding of this section
 
 1. **Text Denoising** : Before converting your text into vectors, it is important to clean it and remove all unhelpful parts a.k.a the noise from your data by converting all characters to lowercase, removing html tags, brackets and stop words (words that don't add much meaning to a sentence). Without this step the dataset is often a cluster of words that the computer doesn't understand.
 
@@ -130,22 +126,54 @@ We made sure to include different demographics in our data and included a range 
 3. **Converting words to vectors** : A word embedding is a learned representation for text where words that have the same meaning have a similar representation. Individual words are represented as real-valued vectors in a predefined vector space. GloVe is n unsupervised algorithm developed by Stanford for generating word embeddings by generating global word-word co-occurence matrix from a corpus. You can download the zipped files containing the embeddings from https://nlp.stanford.edu/projects/glove/. Here you can choose any of the four options for different sizes or training datasets
  >The GloVe word embeddings include sets that were trained on billions of tokens, some up to 840 billion tokens. These algorithms exhibit stereotypical biases, such as gender bias which can be traced back to the original training data. For example certain occupations seem to be more biased towards a particular gender, reinforcing problematic stereotypes. The nearest solution to this problem are some de-biasing algorithms as the one presented in https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1184/reports/6835575.pdf which one can use on embeddings of their choice to mitigate bias, if present.
 
++++
+
+You will need two files for the initial preprocessing:
+
 ```{code-cell} ipython3
-imdb_data_path = 'IMDB Dataset.csv'
-emb_path = 'glove.6B.300d.txt'
-imdb_textproc = TextPreprocess(imdb_data_path, emb_path)
-X,y = imdb_textproc.cleantext('review', target_column = 'sentiment', remove_stopwords = True, remove_punc = True)
-X_train, Y_train,X_test, Y_test = imdb_textproc.split_data(X, y, split_percentile=10)
-imdb_voc = imdb_textproc.create_voc(X_train)
-imdb_emb_matrix = imdb_textproc.emb_matrix()
+imdb_data_path = '../../lstm/server/IMDB Dataset.csv'
+emb_path = '../../lstm/server/glove.6B.300d.txt'
+```
+
+Next, you will load the IMDB dataset into a dataframe using Pandas 
+
+```{code-cell} ipython3
+imdb_df = pd.read_csv(imdb_data_path)
+```
+
+We will use the text preprocessing class imported from the aforementioned [code](https://github.com/Dbhasin1/ethics-tutorial/blob/lstm-update/tutorials/text_preprocessing.py) to carry out the data preprocessing:
+
+```{code-cell} ipython3
+imdb_textproc = TextPreprocess(emb_path)
+X = imdb_textproc.cleantext(imdb_df, 'review', remove_stopwords = True, remove_punc = True)
+```
+
+Now, we need to create a split between training and testing datasets. You can vary the split_percentile to try different ratios:
+
+```{code-cell} ipython3
+y = imdb_df['sentiment'].to_numpy()
+X_train, Y_train, X_test, Y_test = imdb_textproc.split_data(X, y, split_percentile=10)
+```
+
+In order to replace each word with its word embedding, we will first need to replace it with its unique index.
+
+```{code-cell} ipython3
 X_train_indices = imdb_textproc.transform_input(X_train)
 ```
 
+We will use the training corpus to build a matrice mapping each word index and word embedding. This will act as a cache for when we have to replace each word indice with its respective word embedding.
+
 ```{code-cell} ipython3
-speech_data_path = 'speeches.csv'
-speech_textproc = TextPreprocess(speech_data_path, emb_path)
-X_pred = speech_textproc.cleantext('speech', remove_stopwords = True, remove_punc = False)
-speech_voc = speech_textproc.create_voc(X_pred)
+imdb_emb_matrix = imdb_textproc.emb_matrix()
+```
+
+Now, we will apply the same process to the speeches in our dataset:
+
+```{code-cell} ipython3
+speech_data_path = '../data/speeches.csv'
+speech_df = pd.read_csv(speech_data_path)
+speech_textproc = TextPreprocess(emb_path)
+X_pred = speech_textproc.cleantext(speech_df, 'speech', remove_stopwords = True, remove_punc = False)
 speech_emb_matrix = speech_textproc.emb_matrix()
 ```
 
@@ -171,37 +199,16 @@ The problem with an RNN however, is that the influence of a given input on the h
 
 +++
 
-In the above image, The rectangles labelled 'A' are called `Cells` and they are the **Memory Blocks** of our LSTM network. They are responsible for choosing what to remember in a sequence and pass on that information to the next cell via two states called the `hidden state` $H_{t}$ and the `cell state` $C_{t}$ where $t$ indicates the time-step. To know how these states are calculated you'll need to understand the mechanisms happening inside a cell. 
+In the above image, The rectangles labelled 'A' are called `Cells` and they are the **Memory Blocks** of our LSTM network. They are responsible for choosing what to remember in a sequence and pass on that information to the next cell via two states called the `hidden state` $H_{t}$ and the `cell state` $C_{t}$ where $t$ indicates the time-step. To know how these states are calculated you'll need to understand the mechanisms happening inside a cell, we will recommend you to go through [ Long Short-Term Memory (LSTM)](http://d2l.ai/chapter_recurrent-modern/lstm.html).
 
 +++
 
-<div>
-     <img src="attachment:Screen%20Shot%202021-08-19%20at%204.15.47%20PM.png" width="700" height="500">
-</div>
+### But how do we obtain sentiment from the LSTM's output?
+The hidden state we obtain from the last word in our sequence is considered to be a representation of all the information contained in a sequence. To classify this information into various classes (2 in our case, positive and negative) we can use a Fully Connected layer which firstly maps this information to a desired output size and an activation layer like sigmoid on top of it finally converts the output to a value between 0 and 1. We'll consider values greater than 0.5 to be indicative of a positive sentiment.
 
 +++
 
-There are three major mechanisms that happen inside a cell, called `gates`. Given below is a brief overview of what each gate does:
-- **Forget Gate** : A forget gate is responsible for removing information from $C_{t-1}$ i.e the previous cell state. The information that is no longer required for the LSTM to understand things or the information that is of less importance is removed via multiplication of a filter $f_{t}$.
-    - *Input* : $[H_{t-1}  X_{t}]$
-    - $f_{t}$ = $sigmoid$(*Input*)
-    - *Output* : $f_{t}$
-    
-- **Input Gate** : The input gate is responsible for the addition of information to the cell state. There are two main components $i_{t}$ and $cc_{t}$ where $cc_{t}$ is a vector containing all possible values that can be added to the cell state and $i_{t}$ acts as a filter for all the information contained in $c_{t}$
-    - *Input* : $[H_{t-1}  X_{t}]$
-    -  $i_{t}$ = $sigmoid$(*Input*), $cc_{t}$ = $tanh$(*Input*)
-    - *Output* : $i_{t}$ * $cc_{t}$ 
-    
-Once we have the outputs of our **Input Gate** and **Forget Gate**, we can use these to update the previous cell state $c_{t-1}$ to the current cell state $c_{t}$ as shown in the following equation:
-
-$c_{t}$ = $c_{t-1}$ * $f_{t}$  + $i_{t}$ 
-
-- **Output Gate** : The output gate is responsible for selecting useful information from the current cell state. It works similarly as the input gate and gives as output the hidden state that will be passed on to the next cell.
-    - *Input* : $[H_{t-1}  X_{t}]$,  $c_{t}$
-    - $o_{t}$ = $sigmoid$($[H_{t-1}  X_{t}]$),  $co_{t}$ = $tanh$($c_{t}$)
-    - *Output* :$o_{t}$ * $co_{t}$
-    
- $h_{t}$ = $o_{t}$ * $co_{t}$
+Define a function to randomly initialise the parameters which will be learnt while our model trains
 
 ```{code-cell} ipython3
 def initialise_params (hidden_dim, input_dim):
@@ -209,38 +216,63 @@ def initialise_params (hidden_dim, input_dim):
         bf = np.random.randn(hidden_dim, 1)
         Wi = np.random.randn(hidden_dim, hidden_dim + input_dim) # input gate 
         bi = np.random.randn(hidden_dim, 1)
-        Wc = np.random.randn(hidden_dim, hidden_dim + input_dim) # cell state 
-        bc = np.random.randn(hidden_dim, 1)
+        Wcm = np.random.randn(hidden_dim, hidden_dim + input_dim) # candidate memory gate 
+        bcm = np.random.randn(hidden_dim, 1)
         Wo = np.random.randn(hidden_dim, hidden_dim + input_dim) # output gate 
         bo = np.random.randn(hidden_dim, 1)
         
-        W2 = np.random.randn(1, hidden_dim)
+        W2 = np.random.randn(1, hidden_dim) # fully connected classification layer 
         b2 = np.zeros((1, 1))
 
-        parameters = {"Wf": Wf, "bf": bf, "Wi": Wi, "bi": bi, "Wc": Wc, "bc": bc, "Wo": Wo, "bo": bo, "W2": W2, "b2": b2}
+        parameters = {"Wf": Wf, "bf": bf, "Wi": Wi, "bi": bi, "Wcm": Wcm, "bcm": bcm, "Wo": Wo, "bo": bo, "W2": W2, "b2": b2}
         return parameters    
 ```
 
+### Forward Propagation
+
+Now that we have our initialised parameters we pass the input data in a forward direction through the network. Each layer accepts the input data, processes it and passes it to the successive layer. This process is called `Forward Propagation`. You will undertake the following mechanism to implement the same:
+- Loading the word embeddings of the input data
+- Passing the embeddings to an LSTM to obtain the output of the final cell
+- Passing the final output from the LSTM through a fully connected layer to obtain the probability with which the sequence is positive 
+- Storing all the intermediate outputs in a cache to utilise during backpropagation
+
++++
+
+Define a function to calculate the sigmoid of an array
+
 ```{code-cell} ipython3
-def forward_prop (X_b, parameters, emb_matrix):
-    X_vec = Embedding_vectors(X_b, emb_matrix)
-    #print(X_b.shape)
-    batch_size, time_steps = X_b.shape[0], X_b.shape[1]
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+```
+
+Define a function to carry out forward propagation
+
+```{code-cell} ipython3
+def forward_prop (X_vec, parameters):
     
-    Wf, bf, Wi, bi, Wc, bc, Wo, bo, W2, b2 = parameters.values()
+    # Loading input data 
+    X_vec = X_vec
+    
+    # Retrieve values of all parameters 
+    Wf, bf, Wi, bi, Wcm, bcm, Wo, bo, W2, b2 = parameters.values()
     
     hidden_dim = Wf.shape[0]
+    batch_size = X_vec.shape[1]
+    time_steps = X_vec.shape[2]
     
+    # Initialise hidden and cell state before passing to first time step
     prev_hidden_state = np.zeros((hidden_dim, batch_size))
     prev_cell_state = np.zeros(prev_hidden_state.shape)
     
+    # Store all the intermediate and final variables here 
     caches = {'lstm_values':[], 'fc_values':[]}
     
     # Hidden state from the last cell in the LSTM layer is calculated.
     for t in range(time_steps):
+        # Retrieve embedding for one word for each time step
         X_t = X_vec[:, :, t]
         
-        # Concatenate a_prev and xt
+        # Concatenate prev_hidden_state and xt
         concat = np.vstack((prev_hidden_state, X_t))
         
         # Calculate output of the forget gate 
@@ -248,66 +280,85 @@ def forward_prop (X_b, parameters, emb_matrix):
         
         # Calculate output of the input gate 
         it = sigmoid(np.dot(Wi, concat) + bi) 
-        cct = np.tanh(np.dot(Wc, concat) + bc)
-        io = it * cct 
+        cmt = np.tanh(np.dot(Wcm, concat) + bcm)
+        io = it * cmt 
         
         # Update the cell state 
         next_cell_state = (ft * prev_cell_state) + io
         
         # Calculate output of the output gate 
         ot = sigmoid(np.dot(Wo, concat) + bo)
-        co_t = np.tanh(next_cell_state)
         
         # Update the hidden input 
-        next_hidden_state =  ot * co_t
+        next_hidden_state =  ot * np.tanh(next_cell_state)
         
         # store values needed for backward propagation in cache
-        cache = (next_hidden_state, next_cell_state, prev_hidden_state, prev_cell_state, ft, it, cct, ot, X_t)
+        cache = (next_hidden_state, next_cell_state, prev_hidden_state, prev_cell_state, ft, it, cmt, ot, X_t)
         caches['lstm_values'].append(cache)
         
+        # Update hidden state and cell state for next time step
         prev_hidden_state = next_hidden_state
         prev_cell_state = next_cell_state
 
     # Pass through a fully connected layer to perform binary classification 
     z2 = np.dot(W2, next_hidden_state) + b2
     a2 = sigmoid(z2)
-    #print('a2',a2)
     cache = (a2, W2)
     caches['fc_values'].append(cache)
     
     return caches 
 ```
 
-```{code-cell} ipython3
+### Backpropagation
 
+After each forward pass through the network, you will implement the `backpropagation through time` algorithm to accumulate gradients of each parameter over the time steps. Backpropagation through a LSTM is not as straightforward as through other common Deep Learning architectures, due to the special way its underlying layers interact. Nonetheless, the approach is largely the same; identifying dependencies and applying the chain rule. To understand how the gradients are calculated at each step in greater depth, you are suggested to follow this helpful [blog](https://christinakouridi.blog/2019/06/19/backpropagation-lstm/) by Christina Kouridi
+
++++
+
+Define a function to initialise gradients of each parameter as arrays made up of zeros with same dimensions as the corresponding parameter
+
+```{code-cell} ipython3
+# Initialise the gradients 
 def initialise_grads (parameters):
     grads = {}
     for param in parameters.keys():
         grads[f'd{param}'] = np.zeros((parameters[param].shape))
-    return grads     
+    return grads    
+```
 
-def backprop (y, caches, hidden_dim, input_dim, time_steps,  parameters):
+```{code-cell} ipython3
+ def backprop (y, caches, hidden_dim, input_dim, time_steps,  parameters):
+    # Retrieve output and corresponding weights of fully connected layer
     A2, W2 = caches['fc_values'][0]
-    A1 = caches['lstm_values'][-1][0]
+    # Retrieve hidden state calculated in the last time step
+    h_last = caches['lstm_values'][-1][0]
+    # Retrieve batch size 
     batch_size = y.shape[1]
+    
     pred_value = np.array(A2)
     target_value = np.array(y)
     
-    dWf, dbf, dWi, dbi, dWc, dbc, dWo, dbo, dW2, db2 = initialise_grads(parameters).values()
-    gradients = {"dWf": dWf, "dbf": dbf, "dWi": dWi, "dbi": dbi, "dWc": dWc, "dbc": dbc, 
+    # Initialise gradients 
+    dWf, dbf, dWi, dbi, dWcm, dbcm, dWo, dbo, dW2, db2 = initialise_grads(parameters).values()
+    # Store gradients in a dictionary
+    grads = {"dWf": dWf, "dbf": dbf, "dWi": dWi, "dbi": dbi, "dWcm": dWcm, "dbcm": dbcm, 
                  "dWo": dWo, "dbo": dbo, "dW2": dW2, "db2": db2}
     
-    # Calculate grads of the fully connected layer 
+    # Calculate gradients of the fully connected layer 
+    # dZ2 = dL/da2 * da2/dZ2
     dZ2 = pred_value - target_value
-    dW2 = (1 / batch_size) * np.dot(dZ2, A1.T)
+    # dW2 = dL/da2 * da2/dZ2 * dZ2/dW2
+    dW2 = (1 / batch_size) * np.dot(dZ2, h_last.T)
+    # db2 = dL/da2 * da2/dZ2 * dZ2/db2
     db2 = (1 / batch_size) * np.sum(dZ2)
     
     # Gradient of Loss w.r.t the last hidden output of the LSTM 
-    dA1 = np.dot(W2.T, dZ2)  
-    caches = caches 
+    # dh_last = dZ2 * W2 
+    dh_last = np.dot(W2.T, dZ2)  
     
-    dA_prev = dA1
-    dc_prev = np.zeros((dA_prev.shape))
+    # Initialise gradients w.r.t previous hidden state and cell state 
+    dh_prev = dh_last
+    dc_prev = np.zeros((dh_prev.shape))
     
     # loop back over the whole sequence
     for t in reversed(range(time_steps)):
@@ -316,62 +367,89 @@ def backprop (y, caches, hidden_dim, input_dim, time_steps,  parameters):
         # Retrieve parameters from "parameters"
         Wf = parameters["Wf"]
         Wi = parameters["Wi"]
-        Wc = parameters["Wc"]
+        Wcm = parameters["Wcm"]
         Wo = parameters["Wo"]
 
         # Retrieve information from "cache"
-        (next_hidden_state, next_cell_state, prev_hidden_state, prev_cell_state, ft, it, cct, ot, X_t) = cache
-
-        # important variables
-        hidden_dim = hidden_dim
+        (next_hidden_state, next_cell_state, prev_hidden_state, prev_cell_state, ft, it, cmt, ot, X_t) = cache
+        
+        # Input to gates of LSTM is [prev_hidden_state, X_t]
         concat = np.concatenate((prev_hidden_state, X_t), axis=0)
         
         # Compute gates related derivatives
-        # Calculate derivative w.r.t the weights of forget gate 
-        dft = (dc_prev * prev_cell_state + ot * (1 - np.square(np.tanh(next_cell_state))) * prev_cell_state * dA_prev) * ft * (1 - ft)
+        # Calculate derivative w.r.t the parameters of forget gate 
+        # dft = dL/da2 * da2/dZ2 * dZ2/dh_prev * dh_prev/dc_prev * dc_prev/dft
+        dft = (dc_prev * prev_cell_state + ot * (1 - np.square(np.tanh(next_cell_state))) * prev_cell_state * dh_prev) * ft * (1 - ft)
+        # dWf = dft * dft/dWf
         dWf = np.dot(dft, concat.T)
+         # dbf = dft * dft/dbf
         dbf = np.sum(dft, axis=1, keepdims=True)
+        # dh_f = dft * dft/dh_prev
+        dh_f =  np.dot(Wf[:, :hidden_dim].T, dft)
         
-        # Calculate derivative w.r.t the weights of input gate 
-        dit = (dc_prev * cct + ot * (1 - np.square(np.tanh(next_cell_state))) * cct * dA_prev) * it * (1 - it)
-        dcct = (dc_prev * it + ot * (1 - np.square(np.tanh(next_cell_state))) * it * dA_prev) * (1 - np.square(cct))
+        # Calculate derivative w.r.t the parameters of input gate 
+        # dit = dL/da2 * da2/dZ2 * dZ2/dh_prev * dh_prev/dc_prev * dc_prev/dit
+        dit = (dc_prev * cmt + ot * (1 - np.square(np.tanh(next_cell_state))) * cmt * dh_prev) * it * (1 - it)
+        # dcmt = dL/da2 * da2/dZ2 * dZ2/dh_prev * dh_prev/dc_prev * dc_prev/dcmt
+        dcmt = (dc_prev * it + ot * (1 - np.square(np.tanh(next_cell_state))) * it * dh_prev) * (1 - np.square(cmt))
+        # dWi = dit * dit/dWi
         dWi = np.dot(dit, concat.T)
-        dWc = np.dot(dcct, concat.T)
+        # dWcm = dcmt * dcmt/dWcm
+        dWcm = np.dot(dcmt, concat.T)
+        # dbi = dit * dit/dbi
         dbi = np.sum(dit, axis=1, keepdims=True)
-        dbc = np.sum(dcct, axis=1, keepdims=True)
+        # dWcm = dcmt * dcmt/dbcm
+        dbcm = np.sum(dcmt, axis=1, keepdims=True)
+        # dhi = dit * dit/dh_prev
+        dh_i =  np.dot(Wi[:, :hidden_dim].T, dit)
+        # dhcm = dcmt * dcmt/dh_prev
+        dh_cm = np.dot(Wcm[:, :hidden_dim].T, dcmt)
         
-        # Calculate derivative w.r.t the weights of output gate 
-        dot = dA_prev * np.tanh(next_cell_state) * ot * (1 - ot)
+        # Calculate derivative w.r.t the parameters of output gate 
+        # dot = dL/da2 * da2/dZ2 * dZ2/dh_prev * dh_prev/dot 
+        dot = dh_prev * np.tanh(next_cell_state) * ot * (1 - ot)
+        # dWo = dot * dot/dWo
         dWo = np.dot(dot, concat.T)
+        # dbo = dot * dot/dbo
         dbo = np.sum(dot, axis=1, keepdims=True)
+        # dho = dot * dot/dho
+        dh_o = np.dot(Wo[:, :hidden_dim].T, dot)
        
-        # Compute derivatives w.r.t previous hidden state, previous memory state and input
-        dA_prev = np.dot(Wf[:, :hidden_dim].T, dft) + np.dot(Wi[:, :hidden_dim].T, dit) + np.dot(Wc[:, :hidden_dim].T, dcct) + np.dot(
-            Wo[:, :hidden_dim].T, dot)
-        dc_prev = dc_prev * ft + ot * (1 - np.square(np.tanh(next_cell_state))) * ft * dA_prev
+        # Compute derivatives w.r.t previous hidden state and the previous cell state 
+        dh_prev = dh_f + dh_i + dh_cm + dh_o 
+        dc_prev = dc_prev * ft + ot * (1 - np.square(np.tanh(next_cell_state))) * ft * dh_prev
         
-        # sum up the gradients
-        gradients["dWf"] += dWf
-        gradients["dWi"] += dWi
-        gradients["dWc"] += dWc
-        gradients["dWo"] += dWo
-        gradients["dbf"] += dbf
-        gradients["dbi"] += dbi
-        gradients["dbc"] += dbc
-        gradients["dbo"] += dbo
-
-    return gradients
+        # sum up the gradients over the time steps 
+        grads["dWf"] += dWf
+        grads["dWi"] += dWi
+        grads["dWcm"] += dWcm
+        grads["dWo"] += dWo
+        grads["dbf"] += dbf
+        grads["dbi"] += dbi
+        grads["dbcm"] += dbcm
+        grads["dbo"] += dbo
+        
+    return grads
 ```
 
+### Updating the Parameters 
+
+We update the parameters through an optimization algorithm called [Adam](https://optimization.cbe.cornell.edu/index.php?title=Adam) which is an extension to stochastic gradient descent that has recently seen broader adoption for deep learning applications in computer vision and natural language processing. Specifically, the algorithm calculates an exponential moving average of the gradient and the squared gradient, and the parameters beta1 and beta2 control the decay rates of these moving averages. Adam has shown increased convergence and robustness over other gradient descent algorithms and is often recommended as the default optimizer for training.
+
++++
+
+Define a function to initialise the moving averages for each parameter
+
 ```{code-cell} ipython3
+# initialise the moving averages
 def initialise_mav (hidden_dim, input_dim):
     v = {}
     s = {}
 
-    grad_keys = ["dWf", "dbf", "dWi", "dbi", "dWc", "dbc", "dWo", "dbo", "dW2", "db2"]
+    grad_keys = ["dWf", "dbf", "dWi", "dbi", "dWcm", "dbcm", "dWo", "dbo", "dW2", "db2"]
     grad_shapes = [(hidden_dim, hidden_dim + input_dim), (hidden_dim, 1),  # shape of dWf, dbf
                (hidden_dim, hidden_dim + input_dim), (hidden_dim, 1),  # shape of dWi, dbi
-               (hidden_dim, hidden_dim + input_dim), (hidden_dim, 1),  # shape of dWc, dbc
+               (hidden_dim, hidden_dim + input_dim), (hidden_dim, 1),  # shape of dWcm, dbcm
                (hidden_dim, hidden_dim + input_dim), (hidden_dim, 1),  # shape of dWo, dbo
                (1, hidden_dim), (1, 1)]  # shape of dW2, db2
 
@@ -380,9 +458,15 @@ def initialise_mav (hidden_dim, input_dim):
         v[key] = np.zeros(shape)
         s[key] = np.zeros(shape)
         
+    # Return initialised moving averages 
     return v,s 
     
+```
 
+Define a function to update the parameters
+
+```{code-cell} ipython3
+# Update the parameters using Adam optimization 
 def update_parameters (parameters, gradients, v, s, learning_rate=0.01, beta1=0.9, beta2=0.999, epsilon=1e-8):
     param_keys = list(parameters.keys())
     grad_keys = list(gradients.keys())
@@ -397,133 +481,157 @@ def update_parameters (parameters, gradients, v, s, learning_rate=0.01, beta1=0.
         # Update parameters
         parameters[param_key] = parameters[param_key] - learning_rate * v[grad_key] / np.sqrt(
             s[grad_key] + epsilon)
-
+    # Return updated parameters and moving averages 
     return parameters, v, s  
 ```
 
-```{code-cell} ipython3
-def cost_f(A, Y):
-    m = Y.shape[1]
-    loss = - Y * np.log(A) - (1 - Y) * np.log(1 - A)
-    cost = (1 / m) * np.sum(loss)
-    return np.squeeze(cost)
+### Training the Network
+---
 
-def acc(A, Y):
-    total_samples = len(Y)
-    #print(A, Y)
-    #print(Y.shape, A.shape)
-    correct_pred = len([i for i in range(total_samples) if Y[0, i]==A[0, i]])
-    return correct_pred / total_samples 
++++
 
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-```
+You will start by initialising all the parameters and hyperparameters being used in your network
 
 ```{code-cell} ipython3
-def Embedding_vectors(X_b, embedding_matrix):
-
-    m, T_x = X_b.shape[0], X_b.shape[1]
-    emb_dim = embedding_matrix[0].shape[0]
-    X_emb = np.zeros((emb_dim, m, T_x))
-
-    for i in range(m):
-        for t in range(T_x):
-            X_emb[:, i, t] = embedding_matrix[int(X_b[i, t])]
-
-    return X_emb
-
-def create_batches(X, y, batch_size = 16, subset = 6400):
-    num_samples = X.shape[0]
-    len_sample = X.shape[1]
-    indices = np.random.choice(num_samples, size=num_samples)
-    #print(X.shape, y.shape)
-    X_train, y_train = X[indices], y[indices]
-    y_train = y_train.reshape((1, Y_train.shape[0]))
-    no_batches = int(num_samples / batch_size)
-    X_batches, y_batches = np.zeros((no_batches, batch_size, len_sample)), np.zeros((no_batches, 1, batch_size))
-    for i in range(no_batches):
-        start_example, end_example = i * batch_size, (i + 1) * batch_size
-        X_batches[i, :, :] = X_train[start_example:end_example,:] 
-        y_batches[i, :, :] = y_train[:, start_example:end_example]  # of shape (1, m)
-
-    return X_batches, y_batches 
-```
-
-```{code-cell} ipython3
-X_train = X_train_indices
-y_train = Y_train
-
-emb_matrix = imdb_emb_matrix 
-X_batches, y_batches = create_batches(X_train, y_train)
+batch_size = 8
 hidden_dim = 64
-input_dim = len(emb_matrix[0])
-time_steps = X_train.shape[1]
+input_dim = 300
+time_steps = X_train_indices.shape[1]
+learning_rate = 0.1
+epochs = 20
 parameters = initialise_params(hidden_dim, input_dim)
 v,s = initialise_mav(hidden_dim, input_dim)
-costs = []
-epochs = 3
-accuracies = []
+```
 
+You will then split your input data into batches as it requires way less memory as compared to loading the complete data set and is way faster than loading the data set one input at a time
+
+```{code-cell} ipython3
+# Retrieve total number of input samples (tweets in our case)
+num_samples = X_train_indices.shape[0]
+# Obtain the total number of batches 
+no_batches = int(num_samples / batch_size)
+# Initialise batch vectors of the training data 
+X_batches, y_batches = np.zeros((no_batches, batch_size, time_steps)), np.zeros((no_batches, 1, batch_size))
+y_train = Y_train.reshape((1, Y_train.shape[0]))
+for i in range(no_batches):
+    start_example, end_example = i * batch_size, (i + 1) * batch_size
+    X_batches[i, :, :] = X_train_indices[start_example:end_example,:] 
+    y_batches[i, :, :] = y_train[:, start_example:end_example] 
+```
+
+Define a function that replaces each word indice contained in an array with its corresponding word embedding
+
+```{code-cell} ipython3
+def embedding_vectors(X_b, embedding_matrix):
+    # Retrieve batch size and number of time steps 
+    batch_size, time_steps = X_b.shape[0], X_b.shape[1]
+    # Retrieve dimension of word embeddings 
+    emb_dim = embedding_matrix[0].shape[0]
+    
+    # Obtain array of dimensions (emb_dim, m, T_x) 
+    # containing word embeddings for corresponding word indice
+    X_emb = np.zeros((emb_dim, batch_size, time_steps))
+    for i in range(batch_size):
+        for t in range(time_steps):
+            X_emb[:, i, t] = embedding_matrix[int(X_b[i, t])]
+            
+    # Return embedding array
+    return X_emb
+```
+
+To optimise your deep learning network, you need to calculate a loss based on how well the model is doing on the training data. Loss value implies how poorly or well a model behaves after each iteration of optimization. <br>
+Define a function to calculate the loss using [negative log likelihood](http://d2l.ai/chapter_linear-networks/softmax-regression.html?highlight=negative%20log%20likelihood#log-likelihood)
+
+```{code-cell} ipython3
+def loss_f(A, Y):
+    # Retrieve batch size 
+    batch_size = Y.shape[1]
+    # Implement formula for negative log likelihood 
+    loss = - Y * np.log(A) - (1 - Y) * np.log(1 - A)
+    # Calculate cost function as the average of losses for one batch
+    cost = (1 / batch_size) * np.sum(loss)
+    # Return cost function 
+    return np.squeeze(cost)
+```
+
+Set up the neural network's learning experiment with a training loop and start the training process.
+
+```{code-cell} ipython3
+# To store training losses 
+training_losses = []
+
+# This is a training loop.
+# Run the learning experiment for a defined number of epochs (iterations).
 for epoch in range(epochs):
-    no_batches = X_batches.shape[0]
+    #################
+    # Training step #
+    #################
     for b in range(no_batches):
+        # retrieve a single batch and its corresponding target variables 
         x_b = X_batches[b, :, :]
         y_b = y_batches[b, :, :]
-        caches = forward_prop(x_b, parameters, emb_matrix)
-        gradients = backprop(y_b, caches, hidden_dim, input_dim, time_steps,  parameters)
-        parameters, v, s = update_parameters (parameters, gradients, v, s, learning_rate=0.01, 
+        # replace word indices with word embeddings before passing to neural network
+        x_emb = embedding_vectors(x_b, imdb_emb_matrix)
+        
+        # Forward propagation/forward pass:
+        caches = forward_prop(x_emb, parameters, batch_size, time_steps)
+        
+        # Backward propagation/backward pass:
+        gradients = backprop(y_b, caches, hidden_dim, input_dim, time_steps,  parameters, gradients)
+        
+        # Update the weights and biases for the LSTM and fully connected layer 
+        parameters, v, s = update_parameters (parameters, gradients, v, s, learning_rate=learning_rate, 
                                               beta1=0.999, beta2=0.9, epsilon=1e-8)
         
-        
+        # Measure the training error (loss function) between the actual
+        # sentiment (the truth) and the prediction by the model.
         y_pred = caches['fc_values'][0][0]
-        cf = cost_f(y_pred, y_b)
-        y_pred = np.array(np.array([[1.0 if x > 0.5 else 0.0 for x in y_pred[0]]]))
-        accuracy = acc(y_pred, y_b)
-        costs.append(cf)
-        accuracies.append(accuracy)
+        loss = loss_f(y_pred, y_b)
+        # Store training set losses
+        training_losses.append(loss)
         
-    mean_cost = np.mean(costs)
-    mean_acc = np.mean(accuracies)
+    # Calculate average of training losses for one epoch
+    mean_cost = np.mean(training_losses)
     print(f'Epoch {epoch + 1} finished. \t  Loss : {mean_cost} \t Accuracy : {mean_acc}')
 ```
 
+### Sentiment Analysis on the Speech Data
+---
+
 ```{code-cell} ipython3
-def predict(x_test, parameters, emb_matrix):
+# To store predicted sentiments 
+preds = []
+para_len = 100
+# This is the prediction loop.
+for text in X_pred:
+    # retrieve the speaker and corresponding speech
+    speaker = text[0]
+    speech = text[1]
+    # split the speech into a list of words 
+    words = speech.split()
+    # obtain the total number of paragraphs
+    no_paras = math.ceil(len(words)/para_len)
+    # split the speech into a list of sentences 
+    sentences = speech_textproc.sent_tokeniser(speech)
+    # aggregate the sentences into paragraphs
+    k, m = divmod(len(sentences), no_paras)
+    agg_sentences = [sentences[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(no_paras)]
+    paras = [' '.join(sents) for sents in agg_sentences]
+    # replace each word with its corresponding word indice 
+    X_pred_indices = speech_textproc.transform_input(paras)
+    # replace word indices with word embeddings before passing to neural network
+    x_emb = embedding_vectors(X_test_indices, speech_emb_matrix)
     # Forward Propagation
-    caches = forward_prop(x_test, parameters, emb_matrix)
+    caches = forward_prop(x_test, parameters)
+    
+    # Retrieve the output of the fully connected layer 
     A2 = caches['fc_values'][0][0]
     
+    # Mark all predictions > 0.5 as positive and <0.5 as negative 
     pred = np.zeros(A2.shape)
     indices = np.where(A2 > 0.5)  # indices where output > 0.5
     pred[indices] = 1  # are set to 1
 
-    return pred
-```
-
-```{code-cell} ipython3
-# Split each speech into paras 
-import math 
-def split(a, n):
-    k, m = divmod(len(a), n)
-    x = [a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n)]
-    return x
-
-preds = []
-for speech in X_pred:
-    words = speech.split()
-    no_paras = math.ceil(len(words)/100)
-    sentences = textproc.sent_tokeniser(speech)
-    paras_1 = split(sentences, no_paras)
-    para_final = [' '.join(x) for x in paras_1]
-    X_test_indices = textproc.transform_input(para_final)
-    pred = predict(X_test_indices, parameters, speech_emb_matrix)
-    preds.append(pred)
-```
-
-```{code-cell} ipython3
-print(preds)
-```
-
-```{code-cell} ipython3
-
+    # Store predictions 
+    preds.append((speaker,pred))
 ```
