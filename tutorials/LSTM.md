@@ -73,7 +73,7 @@ import string
 ----
 
 Before we begin there are a few pointers you should always keep in mind before choosing the data you wish to train your model on:
-- Unless you have their consent, your data should not link back to named people. It's difficult to obtain a hundred percent anonymous datasets hence it should be made clear to the users that you're minimizing the risk and possible harm of data leaks 
+- Unless you have their consent, your data should not link back to named people. It's difficult to obtain a hundred percent anonymous datasets hence it should be made clear to the users that you're minimizing the risk and possible harm of data leaks.
 - [Trevisan and Reilly](https://eprints.whiterose.ac.uk/91157/1/Ethical%20dilemmas.pdf) identified a list of sensitive topics that need to be handled with extra care. We present the same below along with a few additions:
     - personal daily routines (including location data);
     - individual details about impairment and/or medical records;
