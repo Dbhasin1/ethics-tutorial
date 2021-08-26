@@ -82,8 +82,8 @@ Before we begin there are a few pointers you should always keep in mind before c
     - discrimination and abuse episodes;
     - criticism/praise of individual providers of healthcare and support services
     - suicidal thoughts;
-    - Criticism/praise of a power structure especially if it compromisies their safety
-    - Personally-identifying information (even if anonymized in some way) including things like fingerprints or voice
+    - criticism/praise of a power structure especially if it compromises their safety
+    - personally-identifying information (even if anonymized in some way) including things like fingerprints or voice
 
 - While it can be difficult taking consent from so many people especially on online platforms, the necessity of it depends upon the sensitivity of the topics your data includes and other indicators like whether the platform the data was obtained from allows users to operate under pseudonyms. If the website has a policy that forces the use of a real name, then the users need to be asked for consent 
 
