@@ -73,8 +73,12 @@ import string
 ----
 
 Before we begin there are a few pointers you should always keep in mind before choosing the data you wish to train your model on:
-- Unless you have their consent, your data should not link back to named people. It's difficult to obtain a hundred percent anonymous datasets hence it should be made clear to the users that you're minimizing the risk and possible harm of data leaks.
-- [Trevisan and Reilly](https://eprints.whiterose.ac.uk/91157/1/Ethical%20dilemmas.pdf) identified a list of sensitive topics that need to be handled with extra care. We present the same below along with a few additions:
+- **Identifying Data Bias** - Bias is a component of the human thought process, and data collected from humans therefore inherently reflects that bias. Some ways in which this bias tends to occur in Machine Learning datasets are:
+    - *Bias in historical data*: Historical data are often skewed towards, or against, particular groups.
+        Data can also be severely imbalanced with limited information on protected groups.
+    - *Bias in data collection mechanisms*: Lack of representativeness introduces inherent biases in the data collection process.  
+    - *Bias towards observable outcomes*: In some scenarios, we have the information about True Outcomes only for a certain section of the population. In the absence of information on all outcomes, one cannot even measure fairness
+- **Preserving human anonymity for sensitive data**: [Trevisan and Reilly](https://eprints.whiterose.ac.uk/91157/1/Ethical%20dilemmas.pdf) identified a list of sensitive topics that need to be handled with extra care. We present the same below along with a few additions:
     - personal daily routines (including location data);
     - individual details about impairment and/or medical records;
     - emotional accounts of pain and chronic illness;
@@ -84,8 +88,6 @@ Before we begin there are a few pointers you should always keep in mind before c
     - suicidal thoughts;
     - criticism/praise of a power structure especially if it compromises their safety
     - personally-identifying information (even if anonymized in some way) including things like fingerprints or voice
-
-- While it can be difficult taking consent from so many people especially on online platforms, the necessity of it depends upon the sensitivity of the topics your data includes and other indicators like whether the platform the data was obtained from allows users to operate under pseudonyms. If the website has a policy that forces the use of a real name, then the users need to be asked for consent 
 
 In this section, you will be collecting two different datasets, the IMDB movie reviews dataset and a collection of 10 speeches curated for this tutorial including activists from different countries around the world, different times, and different topics. The former would be used to train the deep learning model while the latter will be used to perform sentiment analysis on.
 
@@ -153,7 +155,6 @@ Now, we need to create a split between training and testing datasets. You can va
 ```{code-cell} ipython3
 y = imdb_df['sentiment'].to_numpy()
 X_train, Y_train, X_test, Y_test = imdb_textproc.split_data(X, y, split_percentile=10)
-imdb_textproc.create_voc(X)
 ```
 
 In order to replace each word with its word embedding, we will first need to replace it with its unique index.
@@ -432,7 +433,7 @@ def initialise_grads (parameters):
         grads["dbcm"] += dbcm
         grads["dbo"] += dbo
     
-    # Normalise the gradients for 
+    # Rescale the gradients to improve training stability 
     for key in grads:
         factor= np.linalg.norm(grads[key])
         if factor != 0:
@@ -610,7 +611,7 @@ for epoch in range(epochs):
 
 +++
 
-Once our model is trained, we can use the updated parameters to start making our predicitons. We break each speech into paragraphs of uniform size before passing them to the Deep Learning model and predicting the sentiment of each paragraph 
+Once our model is trained, we can use the updated parameters to start making our predicitons. We break each speech into paragraphs of uniform size before passing them to the Deep Learning model and predicting the sentiment of each paragraph
 
 ```{code-cell} ipython3
 # To store predicted sentiments 
@@ -677,3 +678,32 @@ plt.show()
 ---
 
 +++
+
+It's crucial to understand that accurately identifying a text's sentiment is not easy primarily because of the complex ways in which humans express sentiment, using irony, sarcasm, humor, or, in social media, abbreviation. Moreover neatly placing text into two categories: 'positive' and 'negative' can be problematic because it is being done without any context. Words or abbreviations can convey very different sentiments depending on age and location, none of which we took into account while building our model.
+
+Along with data, there are also growing concerns that data processing algorithms are influencing policy and daily lives in ways that are not transparent and introduce biases. Certain biases such as the [Inductive Bias](https://en.wikipedia.org/wiki/Inductive_bias#:~:text=The%20inductive%20bias%20(also%20known,that%20it%20has%20not%20encountered.&text=The%20kind%20of%20necessary%20assumptions,in%20the%20phrase%20inductive%20bias.) are absolutely essential to help a Machine Learning model generalise better, for example the LSTM we built earlier is biased towards preserving contextual information over long sequences which makes it so suitable for processing sequential data. The problem arises when [societal biases](https://hbr.org/2019/10/what-do-we-do-about-the-biases-in-ai) creep into algorithmic predictions. Optimizing Machine algorithms via methods like [hyperparameter tuning](https://en.wikipedia.org/wiki/Hyperparameter_optimization) can then further amplify these biases by learning every bit of information in the data. 
+
+There are also cases where bias is only in the output and not the inputs (data, algorithm). For example, in sentiment analysis [accuracy tends to be higher on female-authored texts than on male-authored ones]( https://doi.org/10.3390/electronics9020374). End users of sentiment analysis should be aware that its small gender biases can affect the conclusions drawn from it and apply correction factors when necessary. Hence, it is important that demands for algorithmic accountability should include the ability to test the outputs of a system, including the ability to drill down into different user groups by gender, ethnicity and other characteristics, to identify, and hopefully suggest corrections for, system output biases.
+
++++
+
+### Next Steps
+---
+
++++
+
+You have learned how to build and train a simple Long Short Term Memory network from scratch using just NumPy to perform sentiment analysis.
+
+To further enhance and optimize your neural network model, you can consider one of a mixture of the following:
+
+- Increase the training sample size by increasing the `split_percentile`.
+- Alter the architecture by introducing multiple LSTM layers to make the network deeper.
+- Use a higher epoch size to train longer and add more regularization techniques, such as early stopping, to prevent overfitting.
+- Introduce a validation set for an unbiased valuation of the model fit.
+- Apply batch normalization for faster and more stable training.
+- Tune other parameters, such as the learning rate and hidden layer size.
+- Replace LSTM with a [Bidirectional LSTM](https://en.wikipedia.org/wiki/Bidirectional_recurrent_neural_networks) to use both left and right context for predicting sentiment.
+
+Nowadays, LSTMs have been replaced by the [Transformer](https://jalammar.github.io/illustrated-transformer/) which uses [Attention](https://jalammar.github.io/visualizing-neural-machine-translation-mechanics-of-seq2seq-models-with-attention/) to tackle all the problems that plague an LSTM such as as lack of [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning), lack of [parallel training](https://web.stanford.edu/~rezab/classes/cme323/S16/projects_reports/hedge_usmani.pdf) and a long gradient chain for lengthy sequences
+
+Building a neural network from scratch with NumPy is a great way to learn more about NumPy and about deep learning. However, for real-world applications you should use specialized frameworks — such as PyTorch, JAX, TensorFlow or MXNet — that provide NumPy-like APIs, have built-in automatic differentiation and GPU support, and are designed for high-performance numerical computing and machine learning.
