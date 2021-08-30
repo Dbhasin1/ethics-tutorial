@@ -176,11 +176,6 @@ class TextPreprocess:
         x : :obj:`list` of :obj:`str`
             contains input textual data.
 
-        Returns
-        -------
-        Dict
-            mapping of all unique indices to corresponding words in text corpus.
-
         """
         for sample in x:
             #print(sample)
@@ -229,7 +224,7 @@ class TextPreprocess:
         print(len(gloveModel)," words loaded!")
         return gloveModel
 
-    def emb_matrix (self):
+    def emb_matrix (self, x):
         """Function to map word index and word embedding.
 
         Returns
@@ -238,6 +233,7 @@ class TextPreprocess:
             Each row contains word embedding of a word with index = row number.
 
         """
+        self.create_voc(x)
         word_to_vec_map = self.loadGloveModel()
         words_to_index = self.word2index
         vocab_len = len(words_to_index)

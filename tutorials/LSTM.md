@@ -64,7 +64,7 @@ This tutorial can be run locally in an isolated environment, such as [Virtualenv
 # Importing the necessary packages 
 import numpy as np 
 import pandas as pd 
-import matplotlib as plt 
+import matplotlib.pyplot as plt 
 from text_preprocessing import TextPreprocess 
 import string
 ```
@@ -135,7 +135,7 @@ imdb_data_path = '../../lstm/server/IMDB Dataset.csv'
 emb_path = '../../lstm/server/glove.6B.300d.txt'
 ```
 
-Next, you will load the IMDB dataset into a dataframe using Pandas 
+Next, you will load the IMDB dataset into a dataframe using Pandas
 
 ```{code-cell} ipython3
 imdb_df = pd.read_csv(imdb_data_path)
@@ -153,6 +153,7 @@ Now, we need to create a split between training and testing datasets. You can va
 ```{code-cell} ipython3
 y = imdb_df['sentiment'].to_numpy()
 X_train, Y_train, X_test, Y_test = imdb_textproc.split_data(X, y, split_percentile=10)
+imdb_textproc.create_voc(X)
 ```
 
 In order to replace each word with its word embedding, we will first need to replace it with its unique index.
@@ -164,7 +165,7 @@ X_train_indices = imdb_textproc.transform_input(X_train)
 We will use the training corpus to build a matrice mapping each word index and word embedding. This will act as a cache for when we have to replace each word indice with its respective word embedding.
 
 ```{code-cell} ipython3
-imdb_emb_matrix = imdb_textproc.emb_matrix()
+imdb_emb_matrix = imdb_textproc.emb_matrix(X_train)
 ```
 
 Now, we will apply the same process to the speeches in our dataset:
@@ -174,7 +175,8 @@ speech_data_path = '../data/speeches.csv'
 speech_df = pd.read_csv(speech_data_path)
 speech_textproc = TextPreprocess(emb_path)
 X_pred = speech_textproc.cleantext(speech_df, 'speech', remove_stopwords = True, remove_punc = False)
-speech_emb_matrix = speech_textproc.emb_matrix()
+speakers = speech_df['speaker'].to_numpy()
+speech_emb_matrix = speech_textproc.emb_matrix(X_pred)
 ```
 
 ### 3. Build the Deep Learning Model¶
@@ -242,7 +244,9 @@ Define a function to calculate the sigmoid of an array
 
 ```{code-cell} ipython3
 def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
+    x = np.clip(x, -709.78, 709.78)
+    res = 1 / (1 + np.exp(-x))
+    return res
 ```
 
 Define a function to carry out forward propagation
@@ -372,7 +376,6 @@ def initialise_grads (parameters):
 
         # Retrieve information from "cache"
         (next_hidden_state, next_cell_state, prev_hidden_state, prev_cell_state, ft, it, cmt, ot, X_t) = cache
-        
         # Input to gates of LSTM is [prev_hidden_state, X_t]
         concat = np.concatenate((prev_hidden_state, X_t), axis=0)
         
@@ -428,6 +431,12 @@ def initialise_grads (parameters):
         grads["dbi"] += dbi
         grads["dbcm"] += dbcm
         grads["dbo"] += dbo
+    
+    # Normalise the gradients for 
+    for key in grads:
+        factor= np.linalg.norm(grads[key])
+        if factor != 0:
+            grads[key] = grads[key]/factor
         
     return grads
 ```
@@ -497,7 +506,7 @@ batch_size = 8
 hidden_dim = 64
 input_dim = 300
 time_steps = X_train_indices.shape[1]
-learning_rate = 0.1
+learning_rate = 0.01
 epochs = 20
 parameters = initialise_params(hidden_dim, input_dim)
 v,s = initialise_mav(hidden_dim, input_dim)
@@ -557,8 +566,8 @@ def loss_f(A, Y):
 Set up the neural network's learning experiment with a training loop and start the training process.
 
 ```{code-cell} ipython3
-# To store training losses 
-training_losses = []
+# # To store training losses 
+# training_losses = []
 
 # This is a training loop.
 # Run the learning experiment for a defined number of epochs (iterations).
@@ -566,6 +575,7 @@ for epoch in range(epochs):
     #################
     # Training step #
     #################
+    training_losses = []
     for b in range(no_batches):
         # retrieve a single batch and its corresponding target variables 
         x_b = X_batches[b, :, :]
@@ -574,10 +584,10 @@ for epoch in range(epochs):
         x_emb = embedding_vectors(x_b, imdb_emb_matrix)
         
         # Forward propagation/forward pass:
-        caches = forward_prop(x_emb, parameters, batch_size, time_steps)
+        caches = forward_prop(x_emb, parameters)
         
         # Backward propagation/backward pass:
-        gradients = backprop(y_b, caches, hidden_dim, input_dim, time_steps,  parameters, gradients)
+        gradients = backprop(y_b, caches, hidden_dim, input_dim, time_steps,  parameters)
         
         # Update the weights and biases for the LSTM and fully connected layer 
         parameters, v, s = update_parameters (parameters, gradients, v, s, learning_rate=learning_rate, 
@@ -592,11 +602,15 @@ for epoch in range(epochs):
         
     # Calculate average of training losses for one epoch
     mean_cost = np.mean(training_losses)
-    print(f'Epoch {epoch + 1} finished. \t  Loss : {mean_cost} \t Accuracy : {mean_acc}')
+    print(f'Epoch {epoch + 1} finished. \t  Loss : {mean_cost}')
 ```
 
 ### Sentiment Analysis on the Speech Data
 ---
+
++++
+
+Once our model is trained, we can use the updated parameters to start making our predicitons. We break each speech into paragraphs of uniform size before passing them to the Deep Learning model and predicting the sentiment of each paragraph 
 
 ```{code-cell} ipython3
 # To store predicted sentiments 
@@ -605,12 +619,11 @@ para_len = 100
 # This is the prediction loop.
 for text in X_pred:
     # retrieve the speaker and corresponding speech
-    speaker = text[0]
-    speech = text[1]
+    speech = text
     # split the speech into a list of words 
     words = speech.split()
     # obtain the total number of paragraphs
-    no_paras = math.ceil(len(words)/para_len)
+    no_paras = int(np.ceil(len(words)/para_len))
     # split the speech into a list of sentences 
     sentences = speech_textproc.sent_tokeniser(speech)
     # aggregate the sentences into paragraphs
@@ -620,18 +633,47 @@ for text in X_pred:
     # replace each word with its corresponding word indice 
     X_pred_indices = speech_textproc.transform_input(paras)
     # replace word indices with word embeddings before passing to neural network
-    x_emb = embedding_vectors(X_test_indices, speech_emb_matrix)
+    x_emb = embedding_vectors(X_pred_indices, speech_emb_matrix)
     # Forward Propagation
-    caches = forward_prop(x_test, parameters)
+    caches = forward_prop(x_emb, parameters)
     
     # Retrieve the output of the fully connected layer 
     A2 = caches['fc_values'][0][0]
-    
-    # Mark all predictions > 0.5 as positive and <0.5 as negative 
+    # Mark all predictions >0.5 as positive and <0.5 as negative 
     pred = np.zeros(A2.shape)
     indices = np.where(A2 > 0.5)  # indices where output > 0.5
     pred[indices] = 1  # are set to 1
 
     # Store predictions 
-    preds.append((speaker,pred))
+    preds.append(pred[0])
 ```
+
+Visualising our predictions using `Matplotlib`:
+
+```{code-cell} ipython3
+x_axis = []
+data = {'positive':[], 'negative':[]}
+for i in range(len(preds)):
+    # Extract the speaker and the corresponding sentiment predictions 
+    speaker = speakers[i]
+    sentiment = preds[i]
+    # The speakers will be used to label the x-axis in our plot 
+    x_axis.append(speaker)
+    # Obtain percentage of paragraphs with positive predicted sentiment 
+    pos_perc = sum(sentiment)/len(sentiment)
+    # Store positive and negative percentages 
+    data['positive'].append(pos_perc*100)
+    data['negative'].append(100*(1-pos_perc))    
+
+index = pd.Index(x_axis, name='speaker')
+df = pd.DataFrame(data, index=index)
+ax = df.plot(kind='bar', stacked=True, figsize=(10, 6))
+ax.set_ylabel('percentage')
+plt.legend(title='labels', bbox_to_anchor=(1.0, 1), loc='upper left')
+plt.show()
+```
+
+### Looking at our Neural Network from an ethical perspective
+---
+
++++
