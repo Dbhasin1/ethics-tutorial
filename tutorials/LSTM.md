@@ -245,6 +245,7 @@ Define a function to calculate the sigmoid of an array
 
 ```{code-cell} ipython3
 def sigmoid(x):
+    # To prevent overflow 
     x = np.clip(x, -709.78, 709.78)
     res = 1 / (1 + np.exp(-x))
     return res
@@ -316,11 +317,11 @@ def forward_prop (X_vec, parameters):
 
 ### Backpropagation
 
-After each forward pass through the network, you will implement the `backpropagation through time` algorithm to accumulate gradients of each parameter over the time steps. Backpropagation through a LSTM is not as straightforward as through other common Deep Learning architectures, due to the special way its underlying layers interact. Nonetheless, the approach is largely the same; identifying dependencies and applying the chain rule. To understand how the gradients are calculated at each step in greater depth, you are suggested to follow this helpful [blog](https://christinakouridi.blog/2019/06/19/backpropagation-lstm/) by Christina Kouridi
+After each forward pass through the network, you will implement the `backpropagation through time` algorithm to accumulate gradients of each parameter over the time steps. Backpropagation through a LSTM is not as straightforward as through other common Deep Learning architectures, due to the special way its underlying layers interact. Nonetheless, the approach is largely the same; identifying dependencies and applying the chain rule.
 
 +++
 
-Define a function to initialise gradients of each parameter as arrays made up of zeros with same dimensions as the corresponding parameter
+Lets start with defining a function to initialise gradients of each parameter as arrays made up of zeros with same dimensions as the corresponding parameter
 
 ```{code-cell} ipython3
 # Initialise the gradients 
@@ -330,6 +331,8 @@ def initialise_grads (parameters):
         grads[f'd{param}'] = np.zeros((parameters[param].shape))
     return grads    
 ```
+
+Now we'll define a function to calculate the gradients of each intermediate value in the neural network with respect to the loss and accumulate those gradients over the entire sequence. To understand how the gradients are calculated at each step in greater depth, you are suggested to follow this helpful [blog](https://christinakouridi.blog/2019/06/19/backpropagation-lstm/) by Christina Kouridi
 
 ```{code-cell} ipython3
  def backprop (y, caches, hidden_dim, input_dim, time_steps,  parameters):
@@ -423,7 +426,7 @@ def initialise_grads (parameters):
         dh_prev = dh_f + dh_i + dh_cm + dh_o 
         dc_prev = dc_prev * ft + ot * (1 - np.square(np.tanh(next_cell_state))) * ft * dh_prev
         
-        # sum up the gradients over the time steps 
+        # sum up the gradients over the sequence 
         grads["dWf"] += dWf
         grads["dWi"] += dWi
         grads["dWcm"] += dWcm
@@ -565,9 +568,10 @@ def loss_f(A, Y):
 ```
 
 Set up the neural network's learning experiment with a training loop and start the training process.
+>Skip running this cell if you already have the trained parameters stored in a `npy` file
 
 ```{code-cell} ipython3
-# # To store training losses 
+# To store training losses 
 # training_losses = []
 
 # This is a training loop.
@@ -604,6 +608,9 @@ for epoch in range(epochs):
     # Calculate average of training losses for one epoch
     mean_cost = np.mean(training_losses)
     print(f'Epoch {epoch + 1} finished. \t  Loss : {mean_cost}')
+
+# save the trained parameters to a npy file 
+np.save('parameters.npy',parameters)
 ```
 
 ### Sentiment Analysis on the Speech Data
@@ -617,6 +624,10 @@ Once our model is trained, we can use the updated parameters to start making our
 # To store predicted sentiments 
 preds = []
 para_len = 100
+
+# Retrieve trained values of the parameters
+parameters = np.load('parameters.npy', allow_pickle='TRUE').item()
+
 # This is the prediction loop.
 for text in X_pred:
     # retrieve the speaker and corresponding speech
@@ -684,6 +695,7 @@ plt.show()
 It's crucial to understand that accurately identifying a text's sentiment is not easy primarily because of the complex ways in which humans express sentiment, using irony, sarcasm, humor, or, in social media, abbreviation. Moreover neatly placing text into two categories: 'positive' and 'negative' can be problematic because it is being done without any context. Words or abbreviations can convey very different sentiments depending on age and location, none of which we took into account while building our model.
 
 Along with data, there are also growing concerns that data processing algorithms are influencing policy and daily lives in ways that are not transparent and introduce biases. Certain biases such as the [Inductive Bias](https://en.wikipedia.org/wiki/Inductive_bias#:~:text=The%20inductive%20bias%20(also%20known,that%20it%20has%20not%20encountered.&text=The%20kind%20of%20necessary%20assumptions,in%20the%20phrase%20inductive%20bias) are absolutely essential to help a Machine Learning model generalise better, for example the LSTM we built earlier is biased towards preserving contextual information over long sequences which makes it so suitable for processing sequential data. The problem arises when [societal biases](https://hbr.org/2019/10/what-do-we-do-about-the-biases-in-ai) creep into algorithmic predictions. Optimizing Machine algorithms via methods like [hyperparameter tuning](https://en.wikipedia.org/wiki/Hyperparameter_optimization) can then further amplify these biases by learning every bit of information in the data. 
+
 
 There are also cases where bias is only in the output and not the inputs (data, algorithm). For example, in sentiment analysis [accuracy tends to be higher on female-authored texts than on male-authored ones]( https://doi.org/10.3390/electronics9020374). End users of sentiment analysis should be aware that its small gender biases can affect the conclusions drawn from it and apply correction factors when necessary. Hence, it is important that demands for algorithmic accountability should include the ability to test the outputs of a system, including the ability to drill down into different user groups by gender, ethnicity and other characteristics, to identify, and hopefully suggest corrections for, system output biases.
 
