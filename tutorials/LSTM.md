@@ -130,6 +130,10 @@ We made sure to include different demographics in our data and included a range 
 
 +++
 
+You'll start with importing the necessary packages to build our Deep Learning network
+
++++
+
 You will need two files for the initial preprocessing:
 
 ```{code-cell} ipython3
