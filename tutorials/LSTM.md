@@ -535,7 +535,7 @@ for i in range(no_batches):
     y_batches[i, :, :] = y_train[:, start_example:end_example] 
 ```
 
-Define a function that replaces each word indice contained in an array with its corresponding word embedding
+Define a function that replaces each word index contained in an array with its corresponding word embedding
 
 ```{code-cell} ipython3
 def embedding_vectors(X_b, embedding_matrix):
