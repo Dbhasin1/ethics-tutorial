@@ -40,7 +40,7 @@ In addition to NumPy, you will be utilizing the following Python standard module
 - [`string`](https://docs.python.org/3/library/string.html) for string operations  
 
     as well as:
-- [Matplotlib](https://matplotlib.org/) for data visualization
+- [`Matplotlib`](https://matplotlib.org/) for data visualization
 
 This tutorial can be run locally in an isolated environment, such as [Virtualenv](https://virtualenv.pypa.io/en/stable/) or [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html). You can use [Jupyter Notebook or JupyterLab](https://jupyter.org/install) to run each notebook cell.
 
@@ -60,14 +60,7 @@ This tutorial can be run locally in an isolated environment, such as [Virtualenv
 
 5. Next steps
 
-```{code-cell} ipython3
-# Importing the necessary packages 
-import numpy as np 
-import pandas as pd 
-import matplotlib.pyplot as plt 
-from text_preprocessing import TextPreprocess 
-import string
-```
++++
 
 ## 1. Data Collection
 ----
@@ -84,12 +77,14 @@ Before we begin there are a few pointers you should always keep in mind before c
     - emotional accounts of pain and chronic illness;
     - financial information about income and/or welfare payments;
     - discrimination and abuse episodes;
-    - criticism/praise of individual providers of healthcare and support services
+    - criticism/praise of individual providers of healthcare and support services;
     - suicidal thoughts;
-    - criticism/praise of a power structure especially if it compromises their safety
-    - personally-identifying information (even if anonymized in some way) including things like fingerprints or voice
+    - criticism/praise of a power structure especially if it compromises their safety;
+    - personally-identifying information (even if anonymized in some way) including things like fingerprints or voice.
 
-In this section, you will be collecting two different datasets, the IMDB movie reviews dataset and a collection of 10 speeches curated for this tutorial including activists from different countries around the world, different times, and different topics. The former would be used to train the deep learning model while the latter will be used to perform sentiment analysis on.
+>While it can be difficult taking consent from so many people especially on online platforms, the necessity of it depends upon the sensitivity of the topics your data includes and other indicators like whether the platform the data was obtained from allows users to operate under pseudonyms. If the website has a policy that forces the use of a real name, then the users need to be asked for consent.
+
+In this section, you will be collecting two different datasets: the IMDB movie reviews dataset, and a collection of 10 speeches curated for this tutorial including activists from different countries around the world, different times, and different topics. The former would be used to train the deep learning model while the latter will be used to perform sentiment analysis on.
 
 +++
 
@@ -100,7 +95,7 @@ The IMDB dataset can be found on the website by [Stanford AI Lab](http://ai.stan
 +++
 
 ### Collecting and loading the speech transcripts
-We have chosen speeches by activists around the globe talking about issues like climate change, feminism, lgbtqa+ rights and racism. These were sourced them from newspapers, the official website of the United Nations and the archives of established universities as cited in the table below. A csv file was created containing the transcribed speeches, their speaker and the source the speeches were obtained from. 
+We have chosen speeches by activists around the globe talking about issues like climate change, feminism, lgbtqa+ rights and racism. These were sourced from newspapers, the official website of the United Nations and the archives of established universities as cited in the table below. A csv file was created containing the transcribed speeches, their speaker and the source the speeches were obtained from. 
 We made sure to include different demographics in our data and included a range of different topics, most of which focus on social and/or ethical issues. The dataset is subjected to the CCO Creative Common License, which means that is free for the public to use and there are no copyrights reserved.
 
 | Speech                                           | Speaker                 | Source                                                     |
@@ -117,7 +112,7 @@ We made sure to include different demographics in our data and included a range 
 +++
 
 ## 2. Preprocess the datasets
->Preprocessing data is an extremely crucial step before building any Deep learning model, however in an attempt to keep the tutorial focused on building the model, we will not dive deep into the code for preprocessing. Given below is a brief overview of all the steps we undertake to clean our data and convert it to its numeric representation. The [code](https://github.com/Dbhasin1/ethics-tutorial/blob/lstm-update/tutorials/text_preprocessing.py) is public and we encourage you to look it up for a better understanding of this section
+>Preprocessing data is an extremely crucial step before building any Deep learning model, however in an attempt to keep the tutorial focused on building the model, we will not dive deep into the code for preprocessing. Given below is a brief overview of all the steps we undertake to clean our data and convert it to its numeric representation. The [code](https://github.com/Dbhasin1/ethics-tutorial/blob/lstm-update/tutorials/text_preprocessing.py) is public and we encourage you to look it up for a better understanding of this section and can make ethical preprocessing choices in your future work.
 
 1. **Text Denoising** : Before converting your text into vectors, it is important to clean it and remove all unhelpful parts a.k.a the noise from your data by converting all characters to lowercase, removing html tags, brackets and stop words (words that don't add much meaning to a sentence). Without this step the dataset is often a cluster of words that the computer doesn't understand.
 
@@ -125,20 +120,28 @@ We made sure to include different demographics in our data and included a range 
 2. **Tokenization** : So far the text we have is in its raw form, it needs to be broken apart into chunks called tokens because the most common way of processing language happens at the token level. This process of separating a piece of text into smaller units is called Tokenisation. The tokens obtained are then used to build a vocabulary. Vocabulary refers to a set of all tokens in the corpus along with a unique index allotted to each of them.
 
 
-3. **Converting words to vectors** : A word embedding is a learned representation for text where words that have the same meaning have a similar representation. Individual words are represented as real-valued vectors in a predefined vector space. GloVe is n unsupervised algorithm developed by Stanford for generating word embeddings by generating global word-word co-occurence matrix from a corpus. You can download the zipped files containing the embeddings from https://nlp.stanford.edu/projects/glove/. Here you can choose any of the four options for different sizes or training datasets
+3. **Converting words to vectors** : A word embedding is a learned representation for text where words that have the same meaning have a similar representation. Individual words are represented as real-valued vectors in a predefined vector space. GloVe is an unsupervised algorithm developed by Stanford for generating word embeddings by generating global word-word co-occurence matrix from a corpus. You can download the zipped files containing the embeddings from https://nlp.stanford.edu/projects/glove/. Here you can choose any of the four options for different sizes or training datasets
  >The GloVe word embeddings include sets that were trained on billions of tokens, some up to 840 billion tokens. These algorithms exhibit stereotypical biases, such as gender bias which can be traced back to the original training data. For example certain occupations seem to be more biased towards a particular gender, reinforcing problematic stereotypes. The nearest solution to this problem are some de-biasing algorithms as the one presented in https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1184/reports/6835575.pdf which one can use on embeddings of their choice to mitigate bias, if present.
 
 +++
 
 You'll start with importing the necessary packages to build our Deep Learning network
 
-+++
+```{code-cell} ipython3
+# Importing the necessary packages 
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt 
+from text_preprocessing import TextPreprocess 
+import string
+```
 
 You will need two files for the initial preprocessing:
 
 ```{code-cell} ipython3
-imdb_data_path = '../../lstm/server/IMDB Dataset.csv'
-emb_path = '../../lstm/server/glove.6B.300d.txt'
+# Assign the path on your local system where these files reside  
+imdb_data_path = '../data/IMDB Dataset.csv'
+emb_path = '../data/glove.6B.300d.txt'
 ```
 
 Next, you will load the IMDB dataset into a dataframe using Pandas
@@ -147,16 +150,17 @@ Next, you will load the IMDB dataset into a dataframe using Pandas
 imdb_df = pd.read_csv(imdb_data_path)
 ```
 
-We will use the text preprocessing class imported from the aforementioned [code](https://github.com/Dbhasin1/ethics-tutorial/blob/lstm-update/tutorials/text_preprocessing.py) to carry out the data preprocessing:
+We will use the text preprocessing class imported from the aforementioned [code](https://github.com/Dbhasin1/ethics-tutorial/blob/lstm-update/tutorials/text_preprocessing.py) to carry out the data preprocessing in the `review` column of the imdb dataset:
 
 ```{code-cell} ipython3
 imdb_textproc = TextPreprocess(emb_path)
 X = imdb_textproc.cleantext(imdb_df, 'review', remove_stopwords = True, remove_punc = True)
 ```
 
-Now, we need to create a split between training and testing datasets. You can vary the split_percentile to try different ratios:
+Now, we need to create a split between training and testing datasets. You can vary the `split_percentile` to try different ratios:
 
 ```{code-cell} ipython3
+# convert the target series in the dataframe to a numpy array
 y = imdb_df['sentiment'].to_numpy()
 X_train, Y_train, X_test, Y_test = imdb_textproc.split_data(X, y, split_percentile=10)
 ```
@@ -196,7 +200,7 @@ In a plain neural network, the information only moves in one direction — from 
 
 In a RNN the information cycles through a loop. When it makes a decision, it considers the current input and also what it has learned from the inputs it received previously. 
 
-The problem with an RNN however, is that the influence of a given input on the hidden layer, and therefore on the network output, either decays or blows up exponentially as it cycles around the network’s recurrent connections. This shortcoming is referred to as the vanishing gradient problem. Long Short-Term Memory (LSTM) is an RNN architecture specifically designed to address the vanishing gradient problem.
+The problem with an RNN however, is that the influence of a given input on the hidden layer, and therefore on the network output, either decays or blows up exponentially as it cycles around the network’s recurrent connections. This shortcoming is referred to as the vanishing gradient problem. Long Short-Term Memory (LSTM) is an RNN architecture specifically designed to address the [vanishing gradient problem](https://en.wikipedia.org/wiki/Vanishing_gradient_problem).
 
 +++
 
