@@ -477,7 +477,6 @@ def initialise_mav (hidden_dim, input_dim):
         
     # Return initialised moving averages 
     return v,s 
-    
 ```
 
 Define a function to update the parameters
