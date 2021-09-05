@@ -95,8 +95,13 @@ The IMDB dataset can be found on the website by [Stanford AI Lab](http://ai.stan
 +++
 
 ### Collecting and loading the speech transcripts
+<<<<<<< HEAD
 We have chosen speeches by activists around the globe talking about issues like climate change, feminism, lgbtqa+ rights and racism. These were sourced from newspapers, the official website of the United Nations and the archives of established universities as cited in the table below. A csv file was created containing the transcribed speeches, their speaker and the source the speeches were obtained from. 
 We made sure to include different demographics in our data and included a range of different topics, most of which focus on social and/or ethical issues. The dataset is subjected to the CCO Creative Common License, which means that is free for the public to use and there are no copyrights reserved.
+=======
+We have chosen speeches by activists around the globe talking about issues like climate change, feminism, lgbtqa+ rights and racism. These were sourced them from newspapers, the official website of the United Nations and the archives of established universities as cited in the table below. A csv file was created containing the transcribed speeches, their speaker and the source the speeches were obtained from. 
+We made sure to include different demographics in our data and included a range of different topics, most of which focus on social and/or ethical issues. The dataset is subjected to the CC0 Creative Common License, which means that is free for the public to use and there are no copyrights reserved.
+>>>>>>> 29ae2c63e6f5b814ff7c9e69d2735734c6bec853
 
 | Speech                                           | Speaker                 | Source                                                     |
 |--------------------------------------------------|-------------------------|------------------------------------------------------------|
@@ -455,7 +460,7 @@ Now we'll define a function to calculate the gradients of each intermediate valu
 
 ### Updating the Parameters 
 
-We update the parameters through an optimization algorithm called [Adam](https://optimization.cbe.cornell.edu/index.php?title=Adam) which is an extension to stochastic gradient descent that has recently seen broader adoption for deep learning applications in computer vision and natural language processing. Specifically, the algorithm calculates an exponential moving average of the gradient and the squared gradient, and the parameters beta1 and beta2 control the decay rates of these moving averages. Adam has shown increased convergence and robustness over other gradient descent algorithms and is often recommended as the default optimizer for training.
+We update the parameters through an optimization algorithm called [Adam](https://optimization.cbe.cornell.edu/index.php?title=Adam) which is an extension to stochastic gradient descent that has recently seen broader adoption for deep learning applications in computer vision and natural language processing. Specifically, the algorithm calculates an exponential moving average of the gradient and the squared gradient, and the parameters `beta1` and `beta2` control the decay rates of these moving averages. Adam has shown increased convergence and robustness over other gradient descent algorithms and is often recommended as the default optimizer for training.
 
 +++
 
@@ -481,7 +486,6 @@ def initialise_mav (hidden_dim, input_dim):
         
     # Return initialised moving averages 
     return v,s 
-    
 ```
 
 Define a function to update the parameters
@@ -540,7 +544,7 @@ for i in range(no_batches):
     y_batches[i, :, :] = y_train[:, start_example:end_example] 
 ```
 
-Define a function that replaces each word indice contained in an array with its corresponding word embedding
+Define a function that replaces each word index contained in an array with its corresponding word embedding
 
 ```{code-cell} ipython3
 def embedding_vectors(X_b, embedding_matrix):
