@@ -95,13 +95,8 @@ The IMDB dataset can be found on the website by [Stanford AI Lab](http://ai.stan
 +++
 
 ### Collecting and loading the speech transcripts
-<<<<<<< HEAD
-We have chosen speeches by activists around the globe talking about issues like climate change, feminism, lgbtqa+ rights and racism. These were sourced from newspapers, the official website of the United Nations and the archives of established universities as cited in the table below. A csv file was created containing the transcribed speeches, their speaker and the source the speeches were obtained from. 
-We made sure to include different demographics in our data and included a range of different topics, most of which focus on social and/or ethical issues. The dataset is subjected to the CCO Creative Common License, which means that is free for the public to use and there are no copyrights reserved.
-=======
 We have chosen speeches by activists around the globe talking about issues like climate change, feminism, lgbtqa+ rights and racism. These were sourced them from newspapers, the official website of the United Nations and the archives of established universities as cited in the table below. A csv file was created containing the transcribed speeches, their speaker and the source the speeches were obtained from. 
 We made sure to include different demographics in our data and included a range of different topics, most of which focus on social and/or ethical issues. The dataset is subjected to the CC0 Creative Common License, which means that is free for the public to use and there are no copyrights reserved.
->>>>>>> 29ae2c63e6f5b814ff7c9e69d2735734c6bec853
 
 | Speech                                           | Speaker                 | Source                                                     |
 |--------------------------------------------------|-------------------------|------------------------------------------------------------|
