@@ -5,31 +5,8 @@ import re
 import string 
 
 class TextPreprocess:
-    """Text Preprocessing for a Natural Language Processing model.
+    """Text Preprocessing for a Natural Language Processing model."""
 
-    Attributes
-    ----------
-    emb_path : str
-        Path to the word embedding file.
-    word2index : :obj:`dict` of :obj:`str`
-        Mapping between word and corresponding index.
-    word2count : :obj:`dict` of :obj:`str`
-        Mapping between word and number of occurences.
-    index2word : :obj:`dict` of :obj:`int`
-        Mapping between index and corresponding word. 
-    num_words : int
-        Counter for total words in text.
-    maxlen : int
-        Maximum length of each subsample of text data 
-
-    """
-    def __init__(self, emb_path):
-        self.emb_path = emb_path
-        self.word2index = {}
-        self.word2count = {}
-        self.index2word = {0: "PAD", 1: "SOS", 2: "EOS"}
-        self.num_words = 0
-        self.maxlen = 150
 
     def cleantext(self, df, text_column, remove_stopwords = True, remove_punc = True):
         """Function to clean text data by removing stopwords, tags and punctuation.
@@ -81,7 +58,7 @@ class TextPreprocess:
             data_without_stopwords = remove_stopwords(data, text_column)
             data_without_stopwords[f'clean_{text_column}']= data_without_stopwords[f'{text_column} without stopwords'].apply(lambda cw : remove_tags(cw))
         if remove_punc:
-            data_without_stopwords[f'clean_{text_column}'] = data_without_stopwords[f'clean_{text_column}'].str.replace('[{}]'.format(string.punctuation), ' ')
+            data_without_stopwords[f'clean_{text_column}'] = data_without_stopwords[f'clean_{text_column}'].str.replace('[{}]'.format(string.punctuation), ' ', regex = True)
 
         X = data_without_stopwords[f'clean_{text_column}'].to_numpy()
 
@@ -115,74 +92,7 @@ class TextPreprocess:
         y_test = y[~split]
 
         return (X_train, y_train, X_test, y_test)
-
-
-    def add_word(self, word):
-        """Function to allot unique index to word.
-
-        Parameters
-        ----------
-        word : str
-            To be added in the vocabulary.
-
-        """
-        if word not in self.word2index:
-            self.word2index[word] = self.num_words
-            self.word2count[word] = 1
-            self.index2word[self.num_words] = word
-            self.num_words += 1
-        else:
-            self.word2count[word] += 1
-
-
-    def to_word(self, index):
-        """Function to retrieve corresponding word.
-
-        Parameters
-        ----------
-        index : int 
-            integer representation of a word.
-
-        Returns
-        -------
-        str
-            word corresponding to given index.
-
-        """
-        return self.index2word[index]
-
-
-    def to_index(self, word): 
-        """Function to retrieve corresponding index.
-
-        Parameters
-        ----------
-        word : str 
-            given word.
-
-        Returns
-        -------
-        int
-            index corresponding to given word.
-
-        """
-        return self.word2index[word]
-
-    def create_voc(self, x):
-        """Function to create corpus's vocabulary.
-
-        Parameters
-        ----------
-        x : :obj:`list` of :obj:`str`
-            contains input textual data.
-
-        """
-        for sample in x:
-            #print(sample)
-            tokens = re.split(r"([-\s.,;!?])+", sample)
-            words = [x for x in tokens if (x not in '- \t\n.,;!?\\' and '\\' not in x)]
-            for token in words:
-                self.add_word(token)
+   
     
     def sent_tokeniser (self, x):
         """Function to split text into sentences.
@@ -201,9 +111,27 @@ class TextPreprocess:
         sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', x)
         sentences.pop()
         sentences_cleaned = [re.sub(r'[^\w\s]', '', x) for x in sentences]
-        return sentences_cleaned 
+        return sentences_cleaned
+    
+    def word_tokeniser(self, text):
+        """Function to split text into tokens.
 
-    def loadGloveModel(self):
+        Parameters
+        ----------
+        x : str
+            piece of text
+
+        Returns
+        -------
+        list 
+            words with punctuation removed.
+
+        """
+        tokens = re.split(r"([-\s.,;!?])+", text)
+        words = [x for x in tokens if (x not in '- \t\n.,;!?\\' and '\\' not in x)]
+        return words
+
+    def loadGloveModel(self, emb_path):
         """Function to read from the word embedding file.
 
         Returns
@@ -213,7 +141,7 @@ class TextPreprocess:
 
         """
         print("Loading Glove Model")
-        File = self.emb_path
+        File = emb_path
         f = open(File,'r')
         gloveModel = {}
         for line in f:
@@ -224,59 +152,34 @@ class TextPreprocess:
         print(len(gloveModel)," words loaded!")
         return gloveModel
 
-    def emb_matrix (self, x):
-        """Function to map word index and word embedding.
-
-        Returns
-        -------
-        Numpy array 
-            Each row contains word embedding of a word with index = row number.
-
-        """
-        self.create_voc(x)
-        word_to_vec_map = self.loadGloveModel()
-        words_to_index = self.word2index
-        vocab_len = len(words_to_index)
-        embed_vector_len = word_to_vec_map['moon'].shape[0]
-        emb_matrix = np.zeros((vocab_len, embed_vector_len))
-        for word, index in words_to_index.items():
-            embedding_vector = word_to_vec_map.get(word)
-            if embedding_vector is not None:
-                emb_matrix[index, :] = embedding_vector
-            else:
-                emb_matrix[index, :] = np.random.rand(embed_vector_len,)
-        return emb_matrix 
-
-
-    def transform_input(self, text_data):
-        """Function to replace words with corresponding word indices.
-           Converts all sub-samples to same length.
+        
+    def text_to_paras(self, text, para_len): 
+        """Function to split text into paragraphs.
 
         Parameters
         ----------
-        text_data ::obj:`array` of :obj:`str`
-            Contains textual data
+        text : str
+            piece of text
             
+        para_len : int
+            length of each paragraph
+
         Returns
         -------
-        Numpy array 
-            indice representation of each text sub-sample.
+        list 
+            paragraphs of specified length.
 
         """
-        text_input_indices = np.zeros((len(text_data), self.maxlen))
-        indexes = []
-        for index, text in enumerate(text_data):
-            text_indices = []
-            for word in text.split(' '):
-                if word in self.word2index:
-                    text_indices.append(self.to_index(word))
-            text_len = len(text_indices)
-            if text_len<=self.maxlen:
-                for i in range(self.maxlen-text_len):
-                    text_indices.append(0)
-            else:
-                continue 
-            text_indices = np.array(text_indices)
-            text_input_indices[index, :] = text_indices
-
-        return text_input_indices
+        # split the speech into a list of words 
+        words = text.split()
+        # obtain the total number of paragraphs
+        no_paras = int(np.ceil(len(words)/para_len))
+        # split the speech into a list of sentences 
+        sentences = self.sent_tokeniser(text)
+        # aggregate the sentences into paragraphs
+        k, m = divmod(len(sentences), no_paras)
+        agg_sentences = [sentences[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(no_paras)]
+        paras = np.array([' '.join(sents) for sents in agg_sentences])
+        
+        return paras 
+        

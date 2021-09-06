@@ -89,13 +89,13 @@ In this section, you will be collecting two different datasets: the IMDB movie r
 +++
 
 ### Collecting the IMDB reviews dataset
-The IMDB dataset can be found on the website by [Stanford AI Lab](http://ai.stanford.edu/~amaas/data/sentiment/). To make things a bit simpler we're using the dataframe version downloaded from [Kaggle](https://www.kaggle.com/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews)
+IMDB Reviews Dataset is a large movie review dataset collected and prepared by Andrew L. Maas from the popular movie rating service, IMDB. The IMDB Reviews dataset is used for binary sentiment classification, whether a review is positive or negative. It contains 25,000 movie reviews for training and 25,000 for testing. All these 50,000 reviews are labeled data that may be used for supervised deep learning. To make things a bit more comprehnsible we're using the `pandas` dataframe version downloaded from [Kaggle](https://www.kaggle.com/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews)
    > The IMDb platform allows the usage of their public datasets for personal and non-commercial use. We did our best to ensure that these reviews do not contain any of the aforementioned sensitive topics pertaining to the reviewer.
 
 +++
 
 ### Collecting and loading the speech transcripts
-We have chosen speeches by activists around the globe talking about issues like climate change, feminism, lgbtqa+ rights and racism. These were sourced them from newspapers, the official website of the United Nations and the archives of established universities as cited in the table below. A csv file was created containing the transcribed speeches, their speaker and the source the speeches were obtained from. 
+We have chosen speeches by activists around the globe talking about issues like climate change, feminism, lgbtqa+ rights and racism. These were sourced them from newspapers, the official website of the United Nations and the archives of established universities as cited in the table below. A CSV file was created containing the transcribed speeches, their speaker and the source the speeches were obtained from. 
 We made sure to include different demographics in our data and included a range of different topics, most of which focus on social and/or ethical issues. The dataset is subjected to the CC0 Creative Common License, which means that is free for the public to use and there are no copyrights reserved.
 
 | Speech                                           | Speaker                 | Source                                                     |
@@ -117,10 +117,7 @@ We made sure to include different demographics in our data and included a range 
 1. **Text Denoising** : Before converting your text into vectors, it is important to clean it and remove all unhelpful parts a.k.a the noise from your data by converting all characters to lowercase, removing html tags, brackets and stop words (words that don't add much meaning to a sentence). Without this step the dataset is often a cluster of words that the computer doesn't understand.
 
 
-2. **Tokenization** : So far the text we have is in its raw form, it needs to be broken apart into chunks called tokens because the most common way of processing language happens at the token level. This process of separating a piece of text into smaller units is called Tokenisation. The tokens obtained are then used to build a vocabulary. Vocabulary refers to a set of all tokens in the corpus along with a unique index allotted to each of them.
-
-
-3. **Converting words to vectors** : A word embedding is a learned representation for text where words that have the same meaning have a similar representation. Individual words are represented as real-valued vectors in a predefined vector space. GloVe is an unsupervised algorithm developed by Stanford for generating word embeddings by generating global word-word co-occurence matrix from a corpus. You can download the zipped files containing the embeddings from https://nlp.stanford.edu/projects/glove/. Here you can choose any of the four options for different sizes or training datasets
+2. **Converting words to vectors** : A word embedding is a learned representation for text where words that have the same meaning have a similar representation. Individual words are represented as real-valued vectors in a predefined vector space. GloVe is an unsupervised algorithm developed by Stanford for generating word embeddings by generating global word-word co-occurence matrix from a corpus. You can download the zipped files containing the embeddings from https://nlp.stanford.edu/projects/glove/. Here you can choose any of the four options for different sizes or training datasets
  >The GloVe word embeddings include sets that were trained on billions of tokens, some up to 840 billion tokens. These algorithms exhibit stereotypical biases, such as gender bias which can be traced back to the original training data. For example certain occupations seem to be more biased towards a particular gender, reinforcing problematic stereotypes. The nearest solution to this problem are some de-biasing algorithms as the one presented in https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1184/reports/6835575.pdf which one can use on embeddings of their choice to mitigate bias, if present.
 
 +++
@@ -153,8 +150,8 @@ imdb_df = pd.read_csv(imdb_data_path)
 We will use the text preprocessing class imported from the aforementioned [code](https://github.com/Dbhasin1/ethics-tutorial/blob/lstm-update/tutorials/text_preprocessing.py) to carry out the data preprocessing in the `review` column of the imdb dataset:
 
 ```{code-cell} ipython3
-imdb_textproc = TextPreprocess(emb_path)
-X = imdb_textproc.cleantext(imdb_df, 'review', remove_stopwords = True, remove_punc = True)
+textproc = TextPreprocess()
+X = textproc.cleantext(imdb_df, 'review', remove_stopwords = True, remove_punc = True)
 ```
 
 Now, we need to create a split between training and testing datasets. You can vary the `split_percentile` to try different ratios:
@@ -162,19 +159,7 @@ Now, we need to create a split between training and testing datasets. You can va
 ```{code-cell} ipython3
 # convert the target series in the dataframe to a numpy array
 y = imdb_df['sentiment'].to_numpy()
-X_train, Y_train, X_test, Y_test = imdb_textproc.split_data(X, y, split_percentile=10)
-```
-
-In order to replace each word with its word embedding, we will first need to replace it with its unique index.
-
-```{code-cell} ipython3
-X_train_indices = imdb_textproc.transform_input(X_train)
-```
-
-We will use the training corpus to build a matrice mapping each word index and word embedding. This will act as a cache for when we have to replace each word indice with its respective word embedding.
-
-```{code-cell} ipython3
-imdb_emb_matrix = imdb_textproc.emb_matrix(X_train)
+X_train, Y_train, X_test, Y_test = textproc.split_data(X, y, split_percentile=5)
 ```
 
 Now, we will apply the same process to the speeches in our dataset:
@@ -182,10 +167,14 @@ Now, we will apply the same process to the speeches in our dataset:
 ```{code-cell} ipython3
 speech_data_path = '../data/speeches.csv'
 speech_df = pd.read_csv(speech_data_path)
-speech_textproc = TextPreprocess(emb_path)
-X_pred = speech_textproc.cleantext(speech_df, 'speech', remove_stopwords = True, remove_punc = False)
+X_pred = textproc.cleantext(speech_df, 'speech', remove_stopwords = True, remove_punc = False)
 speakers = speech_df['speaker'].to_numpy()
-speech_emb_matrix = speech_textproc.emb_matrix(X_pred)
+```
+
+We will load the `GloVe` embeddings file to build a dictionary mapping each word and word embedding. This will act as a cache for when we have to replace each word with its respective word embedding.
+
+```{code-cell} ipython3
+emb_matrix = textproc.loadGloveModel(emb_path)
 ```
 
 ### 3. Build the Deep Learning Model¶
@@ -196,11 +185,11 @@ You will then learn how a Recurrent Neural Network differs from a plain Neural N
 
 ### Introduction to a Long Short Term Memory Network
 
-In a plain neural network, the information only moves in one direction — from the input layer, through the hidden layers, to the output layer. The information moves straight through the network and never takes the previous nodes into account at a later stage. Because it only considers the current input, it has no notion of order in time. It simply can’t remember anything about what happened in the past except its training.
+In an artificial neural network (ANN), the information only moves in one direction — from the input layer, through the hidden layers, to the output layer. The information moves straight through the network and never takes the previous nodes into account at a later stage. Because it only considers the current input, the features learned are not shared across different positions of the sequence. Moreover, it cannot process sequences with varying lengths.
 
-In a RNN the information cycles through a loop. When it makes a decision, it considers the current input and also what it has learned from the inputs it received previously. 
+Unlike an ANN, the RNN was designed to work with sequence prediction problems.RNNs introduce state variables to store past information, together with the current inputs, to determine the current outputs. Since an RNN shares the learned features with all the data points in a sequence regardless of its length, it is capable of processing sequences with varying lengths.  
 
-The problem with an RNN however, is that the influence of a given input on the hidden layer, and therefore on the network output, either decays or blows up exponentially as it cycles around the network’s recurrent connections. This shortcoming is referred to as the vanishing gradient problem. Long Short-Term Memory (LSTM) is an RNN architecture specifically designed to address the [vanishing gradient problem](https://en.wikipedia.org/wiki/Vanishing_gradient_problem).
+The problem with an RNN however, is that it cannot retain long-term memory because the influence of a given input on the hidden layer, and therefore on the network output, either decays or blows up exponentially as it cycles around the network’s recurrent connections. This shortcoming is referred to as the vanishing gradient problem. Long Short-Term Memory (LSTM) is an RNN architecture specifically designed to address the [vanishing gradient problem](https://en.wikipedia.org/wiki/Vanishing_gradient_problem).
 
 +++
 
@@ -215,7 +204,7 @@ In the above image, The rectangles labelled 'A' are called `Cells` and they are 
 +++
 
 ### But how do we obtain sentiment from the LSTM's output?
-The hidden state we obtain from the last word in our sequence is considered to be a representation of all the information contained in a sequence. To classify this information into various classes (2 in our case, positive and negative) we can use a Fully Connected layer which firstly maps this information to a desired output size and an activation layer like sigmoid on top of it finally converts the output to a value between 0 and 1. We'll consider values greater than 0.5 to be indicative of a positive sentiment.
+The hidden state we obtain from the last word in our sequence is considered to be a representation of all the information contained in a sequence. To classify this information into various classes (2 in our case, positive and negative) we can use a Fully Connected layer which firstly maps this information to a predefined output size and an activation layer like sigmoid on top of it finally converts the output to a value between 0 and 1. We'll consider values greater than 0.5 to be indicative of a positive sentiment.
 
 +++
 
@@ -249,14 +238,11 @@ Now that we have our initialised parameters we pass the input data in a forward 
 
 +++
 
-Define a function to calculate the sigmoid of an array
+Define a function to calculate the sigmoid of a matrix
 
 ```{code-cell} ipython3
 def sigmoid(x):
-    # To prevent overflow 
-    x = np.clip(x, -709.78, 709.78)
-    res = 1 / (1 + np.exp(-x))
-    return res
+    return np.exp(np.fmin(x, 0)) / (1 + np.exp(-np.abs(x)))
 ```
 
 Define a function to carry out forward propagation
@@ -264,18 +250,11 @@ Define a function to carry out forward propagation
 ```{code-cell} ipython3
 def forward_prop (X_vec, parameters):
     
-    # Loading input data 
-    X_vec = X_vec
-    
-    # Retrieve values of all parameters 
-    Wf, bf, Wi, bi, Wcm, bcm, Wo, bo, W2, b2 = parameters.values()
-    
-    hidden_dim = Wf.shape[0]
-    batch_size = X_vec.shape[1]
-    time_steps = X_vec.shape[2]
+    hidden_dim = parameters['Wf'].shape[0]
+    time_steps = len(X_vec)
     
     # Initialise hidden and cell state before passing to first time step
-    prev_hidden_state = np.zeros((hidden_dim, batch_size))
+    prev_hidden_state = np.zeros((hidden_dim, 1))
     prev_cell_state = np.zeros(prev_hidden_state.shape)
     
     # Store all the intermediate and final variables here 
@@ -283,25 +262,28 @@ def forward_prop (X_vec, parameters):
     
     # Hidden state from the last cell in the LSTM layer is calculated.
     for t in range(time_steps):
+        
+        x = X_vec[t]
         # Retrieve embedding for one word for each time step
-        X_t = X_vec[:, :, t]
+        X_t = emb_matrix.get(x, np.random.rand(300,1))
+        X_t = X_t.reshape((300,1))
         
         # Concatenate prev_hidden_state and xt
         concat = np.vstack((prev_hidden_state, X_t))
         
         # Calculate output of the forget gate 
-        ft = sigmoid(np.dot(Wf, concat) + bf)
+        ft = sigmoid(np.dot(parameters['Wf'], concat) + parameters['bf'])
         
         # Calculate output of the input gate 
-        it = sigmoid(np.dot(Wi, concat) + bi) 
-        cmt = np.tanh(np.dot(Wcm, concat) + bcm)
+        it = sigmoid(np.dot(parameters['Wi'], concat) + parameters['bi']) 
+        cmt = np.tanh(np.dot(parameters['Wcm'], concat) + parameters['bcm'])
         io = it * cmt 
         
         # Update the cell state 
         next_cell_state = (ft * prev_cell_state) + io
         
         # Calculate output of the output gate 
-        ot = sigmoid(np.dot(Wo, concat) + bo)
+        ot = sigmoid(np.dot(parameters['Wo'], concat) + parameters['bo'])
         
         # Update the hidden input 
         next_hidden_state =  ot * np.tanh(next_cell_state)
@@ -315,9 +297,9 @@ def forward_prop (X_vec, parameters):
         prev_cell_state = next_cell_state
 
     # Pass through a fully connected layer to perform binary classification 
-    z2 = np.dot(W2, next_hidden_state) + b2
+    z2 = np.dot(parameters['W2'], next_hidden_state) + parameters['b2']
     a2 = sigmoid(z2)
-    cache = (a2, W2)
+    cache = (a2, parameters['W2'])
     caches['fc_values'].append(cache)
     
     return caches 
@@ -343,30 +325,25 @@ def initialise_grads (parameters):
 Now we'll define a function to calculate the gradients of each intermediate value in the neural network with respect to the loss and accumulate those gradients over the entire sequence. To understand how the gradients are calculated at each step in greater depth, you are suggested to follow this helpful [blog](https://christinakouridi.blog/2019/06/19/backpropagation-lstm/) by Christina Kouridi
 
 ```{code-cell} ipython3
- def backprop (y, caches, hidden_dim, input_dim, time_steps,  parameters):
+ def backprop (y, caches, hidden_dim, input_dim, time_steps, parameters):
     # Retrieve output and corresponding weights of fully connected layer
     A2, W2 = caches['fc_values'][0]
     # Retrieve hidden state calculated in the last time step
     h_last = caches['lstm_values'][-1][0]
-    # Retrieve batch size 
-    batch_size = y.shape[1]
     
     pred_value = np.array(A2)
     target_value = np.array(y)
     
     # Initialise gradients 
-    dWf, dbf, dWi, dbi, dWcm, dbcm, dWo, dbo, dW2, db2 = initialise_grads(parameters).values()
-    # Store gradients in a dictionary
-    grads = {"dWf": dWf, "dbf": dbf, "dWi": dWi, "dbi": dbi, "dWcm": dWcm, "dbcm": dbcm, 
-                 "dWo": dWo, "dbo": dbo, "dW2": dW2, "db2": db2}
+    gradients = initialise_grads(parameters)
     
     # Calculate gradients of the fully connected layer 
     # dZ2 = dL/da2 * da2/dZ2
     dZ2 = pred_value - target_value
     # dW2 = dL/da2 * da2/dZ2 * dZ2/dW2
-    dW2 = (1 / batch_size) * np.dot(dZ2, h_last.T)
+    gradients['dW2'] = np.dot(dZ2, h_last.T)
     # db2 = dL/da2 * da2/dZ2 * dZ2/db2
-    db2 = (1 / batch_size) * np.sum(dZ2)
+    gradients['db2'] = np.sum(dZ2)
     
     # Gradient of Loss w.r.t the last hidden output of the LSTM 
     # dh_last = dZ2 * W2 
@@ -396,9 +373,9 @@ Now we'll define a function to calculate the gradients of each intermediate valu
         # dft = dL/da2 * da2/dZ2 * dZ2/dh_prev * dh_prev/dc_prev * dc_prev/dft
         dft = (dc_prev * prev_cell_state + ot * (1 - np.square(np.tanh(next_cell_state))) * prev_cell_state * dh_prev) * ft * (1 - ft)
         # dWf = dft * dft/dWf
-        dWf = np.dot(dft, concat.T)
+        gradients['dWf'] += np.dot(dft, concat.T)
          # dbf = dft * dft/dbf
-        dbf = np.sum(dft, axis=1, keepdims=True)
+        gradients['dbf'] += np.sum(dft, axis=1, keepdims=True)
         # dh_f = dft * dft/dh_prev
         dh_f =  np.dot(Wf[:, :hidden_dim].T, dft)
         
@@ -408,13 +385,13 @@ Now we'll define a function to calculate the gradients of each intermediate valu
         # dcmt = dL/da2 * da2/dZ2 * dZ2/dh_prev * dh_prev/dc_prev * dc_prev/dcmt
         dcmt = (dc_prev * it + ot * (1 - np.square(np.tanh(next_cell_state))) * it * dh_prev) * (1 - np.square(cmt))
         # dWi = dit * dit/dWi
-        dWi = np.dot(dit, concat.T)
+        gradients['dWi'] += np.dot(dit, concat.T)
         # dWcm = dcmt * dcmt/dWcm
-        dWcm = np.dot(dcmt, concat.T)
+        gradients['dWcm'] += np.dot(dcmt, concat.T)
         # dbi = dit * dit/dbi
-        dbi = np.sum(dit, axis=1, keepdims=True)
+        gradients['dbi'] += np.sum(dit, axis=1, keepdims=True)
         # dWcm = dcmt * dcmt/dbcm
-        dbcm = np.sum(dcmt, axis=1, keepdims=True)
+        gradients['dbcm'] += np.sum(dcmt, axis=1, keepdims=True)
         # dhi = dit * dit/dh_prev
         dh_i =  np.dot(Wi[:, :hidden_dim].T, dit)
         # dhcm = dcmt * dcmt/dh_prev
@@ -424,9 +401,9 @@ Now we'll define a function to calculate the gradients of each intermediate valu
         # dot = dL/da2 * da2/dZ2 * dZ2/dh_prev * dh_prev/dot 
         dot = dh_prev * np.tanh(next_cell_state) * ot * (1 - ot)
         # dWo = dot * dot/dWo
-        dWo = np.dot(dot, concat.T)
+        gradients['dWo'] += np.dot(dot, concat.T)
         # dbo = dot * dot/dbo
-        dbo = np.sum(dot, axis=1, keepdims=True)
+        gradients['dbo'] += np.sum(dot, axis=1, keepdims=True)
         # dho = dot * dot/dho
         dh_o = np.dot(Wo[:, :hidden_dim].T, dot)
        
@@ -434,23 +411,7 @@ Now we'll define a function to calculate the gradients of each intermediate valu
         dh_prev = dh_f + dh_i + dh_cm + dh_o 
         dc_prev = dc_prev * ft + ot * (1 - np.square(np.tanh(next_cell_state))) * ft * dh_prev
         
-        # sum up the gradients over the sequence 
-        grads["dWf"] += dWf
-        grads["dWi"] += dWi
-        grads["dWcm"] += dWcm
-        grads["dWo"] += dWo
-        grads["dbf"] += dbf
-        grads["dbi"] += dbi
-        grads["dbcm"] += dbcm
-        grads["dbo"] += dbo
-    
-    # Rescale the gradients to improve training stability 
-    for key in grads:
-        factor= np.linalg.norm(grads[key])
-        if factor != 0:
-            grads[key] = grads[key]/factor
-        
-    return grads
+    return gradients
 ```
 
 ### Updating the Parameters 
@@ -463,22 +424,13 @@ Define a function to initialise the moving averages for each parameter
 
 ```{code-cell} ipython3
 # initialise the moving averages
-def initialise_mav (hidden_dim, input_dim):
+def initialise_mav (hidden_dim, input_dim, params):
     v = {}
     s = {}
-
-    grad_keys = ["dWf", "dbf", "dWi", "dbi", "dWcm", "dbcm", "dWo", "dbo", "dW2", "db2"]
-    grad_shapes = [(hidden_dim, hidden_dim + input_dim), (hidden_dim, 1),  # shape of dWf, dbf
-               (hidden_dim, hidden_dim + input_dim), (hidden_dim, 1),  # shape of dWi, dbi
-               (hidden_dim, hidden_dim + input_dim), (hidden_dim, 1),  # shape of dWcm, dbcm
-               (hidden_dim, hidden_dim + input_dim), (hidden_dim, 1),  # shape of dWo, dbo
-               (1, hidden_dim), (1, 1)]  # shape of dW2, db2
-
     # Initialize dictionaries v, s
-    for key, shape in zip(grad_keys, grad_shapes):
-        v[key] = np.zeros(shape)
-        s[key] = np.zeros(shape)
-        
+    for key in params:
+        v['d'+ key] = np.zeros(params[key].shape)
+        s['d'+ key] = np.zeros(params[key].shape)        
     # Return initialised moving averages 
     return v,s 
 ```
@@ -487,20 +439,17 @@ Define a function to update the parameters
 
 ```{code-cell} ipython3
 # Update the parameters using Adam optimization 
-def update_parameters (parameters, gradients, v, s, learning_rate=0.01, beta1=0.9, beta2=0.999, epsilon=1e-8):
-    param_keys = list(parameters.keys())
-    grad_keys = list(gradients.keys())
-    
-    for param_key, grad_key in zip(param_keys, grad_keys):
+def update_parameters (parameters, gradients, v, s, learning_rate=0.01, beta1=0.9, beta2=0.999):    
+    for key in parameters:
         # Moving average of the gradients
-        v[grad_key] = beta1 * v[grad_key] + (1 - beta1) * gradients[grad_key]
+        v['d'+ key] = beta1 * v['d'+ key] + (1 - beta1) * gradients['d'+ key]
 
         # Moving average of the squared gradients
-        s[grad_key] = beta2 * s[grad_key] + (1 - beta2) * (gradients[grad_key] ** 2)
+        s['d'+ key] = beta2 * s['d'+ key] + (1 - beta2) * (gradients['d'+ key] ** 2)
 
         # Update parameters
-        parameters[param_key] = parameters[param_key] - learning_rate * v[grad_key] / np.sqrt(
-            s[grad_key] + epsilon)
+        parameters[key] = parameters[key] - learning_rate * v['d' + key] / np.sqrt(
+            s['d'+ key] + 1e-8)
     # Return updated parameters and moving averages 
     return parameters, v, s  
 ```
@@ -513,50 +462,12 @@ def update_parameters (parameters, gradients, v, s, learning_rate=0.01, beta1=0.
 You will start by initialising all the parameters and hyperparameters being used in your network
 
 ```{code-cell} ipython3
-batch_size = 8
 hidden_dim = 64
 input_dim = 300
-time_steps = X_train_indices.shape[1]
-learning_rate = 0.01
+learning_rate = 0.001
 epochs = 20
 parameters = initialise_params(hidden_dim, input_dim)
-v,s = initialise_mav(hidden_dim, input_dim)
-```
-
-You will then split your input data into batches as it requires way less memory as compared to loading the complete data set and is way faster than loading the data set one input at a time
-
-```{code-cell} ipython3
-# Retrieve total number of input samples (tweets in our case)
-num_samples = X_train_indices.shape[0]
-# Obtain the total number of batches 
-no_batches = int(num_samples / batch_size)
-# Initialise batch vectors of the training data 
-X_batches, y_batches = np.zeros((no_batches, batch_size, time_steps)), np.zeros((no_batches, 1, batch_size))
-y_train = Y_train.reshape((1, Y_train.shape[0]))
-for i in range(no_batches):
-    start_example, end_example = i * batch_size, (i + 1) * batch_size
-    X_batches[i, :, :] = X_train_indices[start_example:end_example,:] 
-    y_batches[i, :, :] = y_train[:, start_example:end_example] 
-```
-
-Define a function that replaces each word index contained in an array with its corresponding word embedding
-
-```{code-cell} ipython3
-def embedding_vectors(X_b, embedding_matrix):
-    # Retrieve batch size and number of time steps 
-    batch_size, time_steps = X_b.shape[0], X_b.shape[1]
-    # Retrieve dimension of word embeddings 
-    emb_dim = embedding_matrix[0].shape[0]
-    
-    # Obtain array of dimensions (emb_dim, m, T_x) 
-    # containing word embeddings for corresponding word indice
-    X_emb = np.zeros((emb_dim, batch_size, time_steps))
-    for i in range(batch_size):
-        for t in range(time_steps):
-            X_emb[:, i, t] = embedding_matrix[int(X_b[i, t])]
-            
-    # Return embedding array
-    return X_emb
+v,s = initialise_mav(hidden_dim, input_dim, parameters)
 ```
 
 To optimise your deep learning network, you need to calculate a loss based on how well the model is doing on the training data. Loss value implies how poorly or well a model behaves after each iteration of optimization. <br>
@@ -564,14 +475,12 @@ Define a function to calculate the loss using [negative log likelihood](http://d
 
 ```{code-cell} ipython3
 def loss_f(A, Y):
-    # Retrieve batch size 
-    batch_size = Y.shape[1]
+    # define value of epsilon to prevent zero division error inside a log 
+    epsilon = 1e-5
     # Implement formula for negative log likelihood 
-    loss = - Y * np.log(A) - (1 - Y) * np.log(1 - A)
-    # Calculate cost function as the average of losses for one batch
-    cost = (1 / batch_size) * np.sum(loss)
-    # Return cost function 
-    return np.squeeze(cost)
+    loss = - Y * np.log(A + epsilon) - (1 - Y) * np.log(1 - A + epsilon)
+    # Return loss
+    return np.squeeze(loss)
 ```
 
 Set up the neural network's learning experiment with a training loop and start the training process.
@@ -579,7 +488,7 @@ Set up the neural network's learning experiment with a training loop and start t
 
 ```{code-cell} ipython3
 # To store training losses 
-# training_losses = []
+training_losses = []
 
 # This is a training loop.
 # Run the learning experiment for a defined number of epochs (iterations).
@@ -587,37 +496,40 @@ for epoch in range(epochs):
     #################
     # Training step #
     #################
-    training_losses = []
-    for b in range(no_batches):
-        # retrieve a single batch and its corresponding target variables 
-        x_b = X_batches[b, :, :]
-        y_b = y_batches[b, :, :]
-        # replace word indices with word embeddings before passing to neural network
-        x_emb = embedding_vectors(x_b, imdb_emb_matrix)
+    j = []
+    for sample, target in zip(X_train, Y_train):
+        # split text sample into words/tokens 
+        b = textproc.word_tokeniser(sample)
         
         # Forward propagation/forward pass:
-        caches = forward_prop(x_emb, parameters)
+        caches = forward_prop(b, parameters)
         
         # Backward propagation/backward pass:
-        gradients = backprop(y_b, caches, hidden_dim, input_dim, time_steps,  parameters)
+        gradients = backprop(target, caches, hidden_dim, input_dim, len(b), parameters)
         
         # Update the weights and biases for the LSTM and fully connected layer 
         parameters, v, s = update_parameters (parameters, gradients, v, s, learning_rate=learning_rate, 
-                                              beta1=0.999, beta2=0.9, epsilon=1e-8)
+                                              beta1=0.999, beta2=0.9)
         
         # Measure the training error (loss function) between the actual
         # sentiment (the truth) and the prediction by the model.
         y_pred = caches['fc_values'][0][0]
-        loss = loss_f(y_pred, y_b)
+        loss = loss_f(y_pred, target)
+
         # Store training set losses
-        training_losses.append(loss)
+        j.append(loss)
         
     # Calculate average of training losses for one epoch
-    mean_cost = np.mean(training_losses)
+    mean_cost = np.mean(j)
+    training_losses.append(mean_cost)
     print(f'Epoch {epoch + 1} finished. \t  Loss : {mean_cost}')
 
 # save the trained parameters to a npy file 
 np.save('parameters.npy',parameters)
+# plot the training loss
+plt.plot([i for i in range(len(training_losses))], training_losses)
+plt.xlabel("training iterations")
+plt.ylabel("training loss")
 ```
 
 ### Sentiment Analysis on the Speech Data
@@ -629,62 +541,53 @@ Once our model is trained, we can use the updated parameters to start making our
 
 ```{code-cell} ipython3
 # To store predicted sentiments 
-preds = []
+predictions = {}
+
+# define the length of a paragraph
 para_len = 100
 
 # Retrieve trained values of the parameters
 parameters = np.load('parameters.npy', allow_pickle='TRUE').item()
 
 # This is the prediction loop.
-for text in X_pred:
-    # retrieve the speaker and corresponding speech
-    speech = text
-    # split the speech into a list of words 
-    words = speech.split()
-    # obtain the total number of paragraphs
-    no_paras = int(np.ceil(len(words)/para_len))
-    # split the speech into a list of sentences 
-    sentences = speech_textproc.sent_tokeniser(speech)
-    # aggregate the sentences into paragraphs
-    k, m = divmod(len(sentences), no_paras)
-    agg_sentences = [sentences[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(no_paras)]
-    paras = [' '.join(sents) for sents in agg_sentences]
-    # replace each word with its corresponding word indice 
-    X_pred_indices = speech_textproc.transform_input(paras)
-    # replace word indices with word embeddings before passing to neural network
-    x_emb = embedding_vectors(X_pred_indices, speech_emb_matrix)
-    # Forward Propagation
-    caches = forward_prop(x_emb, parameters)
+for index, text in enumerate(X_pred):
     
-    # Retrieve the output of the fully connected layer 
-    A2 = caches['fc_values'][0][0]
-    threshold = np.mean(A2)
+    paras = textproc.text_to_paras(text, para_len)
+    pred_sents = []
+    
+    for para in paras:
+        # split text sample into words/tokens 
+        para_tokens = textproc.word_tokeniser(para)
+        # Forward Propagation
+        caches = forward_prop(para_tokens, parameters)
+    
+        # Retrieve the output of the fully connected layer 
+        sent_prob = caches['fc_values'][0][0][0][0]
+        pred_sents.append(sent_prob)
 
-    # Mark all predictions >0.5 as positive and <0.5 as negative 
-    pred = np.zeros(A2.shape)
-    indices = np.where(A2 > threshold)  # indices where output > 0.5
-    pred[indices] = 1  # are set to 1
-    
-    # Store predictions 
-    preds.append(pred[0])
+    threshold = 0.5
+    pred_sents = np.array(pred_sents)
+    # Mark all predictions > threshold as positive and < threshold as negative 
+    pred = np.zeros(pred_sents.shape)
+    pos_indices = np.where(pred_sents > threshold)  # indices where output > 0.5
+    neg_indices = np.where(pred_sents < threshold)  # indices where output < 0.5
+    # Store predictions and corresponding piece of text
+    predictions[speakers[index]] = {'pos_paras': paras[pos_indices[0]], 'neg_paras': paras[neg_indices[0]]}
 ```
 
 Visualising our predictions using `Matplotlib`:
 
 ```{code-cell} ipython3
 x_axis = []
-data = {'positive':[], 'negative':[]}
-for i in range(len(preds)):
-    # Extract the speaker and the corresponding sentiment predictions 
-    speaker = speakers[i]
-    sentiment = preds[i]
+data = {'positive sentiment':[], 'negative sentiment':[]}
+for speaker in predictions:
     # The speakers will be used to label the x-axis in our plot 
     x_axis.append(speaker)
     # Obtain percentage of paragraphs with positive predicted sentiment 
-    pos_perc = sum(sentiment)/len(sentiment)
+    pos_perc = len(predictions[speaker]['pos_paras'])/(len(predictions[speaker]['pos_paras']) + len(predictions[speaker]['neg_paras']))
     # Store positive and negative percentages 
-    data['positive'].append(pos_perc*100)
-    data['negative'].append(100*(1-pos_perc))    
+    data['positive sentiment'].append(pos_perc*100)
+    data['negative sentiment'].append(100*(1-pos_perc))    
 
 index = pd.Index(x_axis, name='speaker')
 df = pd.DataFrame(data, index=index)
@@ -693,6 +596,10 @@ ax.set_ylabel('percentage')
 plt.legend(title='labels', bbox_to_anchor=(1.0, 1), loc='upper left')
 plt.show()
 ```
+
+In the plot above, you're shown what percentages of each speech are expected to carry a positive and negative  sentiment. Since this implementation prioritised simplicity and clarity over performance, we cannot expect these results to be much accurate. Moreover, while making the sentiment predictions for one paragraph we did not use the neighbouring paragraphs for context which would have led to more accurate predictions. We encourage the reader to play around with the model and make some tweaks suggested in `Next Steps` and observe how the model performance changes.
+
++++
 
 ### Looking at our Neural Network from an ethical perspective
 ---
@@ -723,8 +630,14 @@ To further enhance and optimize your neural network model, you can consider one 
 - Introduce a validation set for an unbiased valuation of the model fit.
 - Apply batch normalization for faster and more stable training.
 - Tune other parameters, such as the learning rate and hidden layer size.
+- Initialise weights using [Xavier Initialisation](https://d2l.ai/chapter_multilayer-perceptrons/numerical-stability-and-init.html) to prevent vanishing/e insteading of initialising them randomly.
 - Replace LSTM with a [Bidirectional LSTM](https://en.wikipedia.org/wiki/Bidirectional_recurrent_neural_networks) to use both left and right context for predicting sentiment.
 
 Nowadays, LSTMs have been replaced by the [Transformer](https://jalammar.github.io/illustrated-transformer/) which uses [Attention](https://jalammar.github.io/visualizing-neural-machine-translation-mechanics-of-seq2seq-models-with-attention/) to tackle all the problems that plague an LSTM such as as lack of [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning), lack of [parallel training](https://web.stanford.edu/~rezab/classes/cme323/S16/projects_reports/hedge_usmani.pdf) and a long gradient chain for lengthy sequences
 
 Building a neural network from scratch with NumPy is a great way to learn more about NumPy and about deep learning. However, for real-world applications you should use specialized frameworks — such as PyTorch, JAX, TensorFlow or MXNet — that provide NumPy-like APIs, have built-in automatic differentiation and GPU support, and are designed for high-performance numerical computing and machine learning.
+
+Finally, to know more about how ethics come into play when developing a machine learning model, you can refer to the following resources :
+- Data ethics resources by the Turing Institute. https://www.turing.ac.uk/research/data-ethics
+- Considering how artificial intelligence shifts power, an [article](https://www.nature.com/articles/d41586-020-02003-2) and [talk](https://slideslive.com/38923453/the-values-of-machine-learning) by Pratyusha Kalluri
+- More ethics resources on [this blog post](https://www.fast.ai/2018/09/24/ai-ethics-resources/) by Rachel Thomas and the [Radical AI podcast](https://www.radicalai.org/)
