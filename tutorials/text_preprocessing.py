@@ -1,8 +1,8 @@
 import pandas as pd
 import argparse
 import numpy as np
-import re
-import string 
+import re # (https://docs.python.org/3/library/re.html) for tokenising textual data 
+import string # (https://docs.python.org/3/library/string.html) for string operations  
 
 class TextPreprocess:
     """Text Preprocessing for a Natural Language Processing model."""
