@@ -155,6 +155,10 @@ Now, we need to create a split between training and testing datasets. You can va
 ```{code-cell} ipython3
 # convert the target series in the dataframe to a numpy array
 y = imdb_df['sentiment'].to_numpy()
+# taking a subset of the data due to computational limitations
+X = X[0:2000]
+y = y[0:2000]
+# split data into training and testing sets 
 X_train, Y_train, X_test, Y_test = textproc.split_data(X, y, split_percentile=90)
 ```
 
