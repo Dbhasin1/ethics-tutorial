@@ -155,7 +155,9 @@ Now, we need to create a split between training and testing datasets. You can va
 ```{code-cell} ipython3
 # convert the target series in the dataframe to a numpy array
 y = imdb_df['sentiment'].to_numpy()
-X_train, Y_train, X_test, Y_test = textproc.split_data(X, y, split_percentile=5)
+X = X[0:2000]
+y = y[0:2000]
+X_train, Y_train, X_test, Y_test = textproc.split_data(X, y, split_percentile=90)
 ```
 
 Now, we will apply the same process to the speeches in our dataset:
@@ -459,9 +461,9 @@ You will start by initialising all the parameters and hyperparameters being used
 
 ```{code-cell} ipython3
 hidden_dim = 64
-input_dim = 300
+input_dim = emb_matrix['hello'].shape[0]
 learning_rate = 0.001
-epochs = 20
+epochs = 10
 parameters = initialise_params(hidden_dim, input_dim)
 v,s = initialise_mav(hidden_dim, input_dim, parameters)
 ```
@@ -471,7 +473,7 @@ Define a function to calculate the loss using [negative log likelihood](http://d
 
 ```{code-cell} ipython3
 def loss_f(A, Y):
-    # define value of epsilon to prevent zero division error inside a log 
+    # define value of epsilon to prevent zero division error inside the log function 
     epsilon = 1e-5
     # Implement formula for negative log likelihood 
     loss = - Y * np.log(A + epsilon) - (1 - Y) * np.log(1 - A + epsilon)
@@ -479,12 +481,14 @@ def loss_f(A, Y):
     return np.squeeze(loss)
 ```
 
-Set up the neural network's learning experiment with a training loop and start the training process.
+Set up the neural network's learning experiment with a training loop and start the training process. You will also evaluate the model's performance on the training dataset to see how well the model is *learning* and the testing dataset to see how well it is *generalising*.
 >Skip running this cell if you already have the trained parameters stored in a `npy` file
 
 ```{code-cell} ipython3
 # To store training losses 
 training_losses = []
+# To store testing losses 
+testing_losses = []
 
 # This is a training loop.
 # Run the learning experiment for a defined number of epochs (iterations).
@@ -492,7 +496,7 @@ for epoch in range(epochs):
     #################
     # Training step #
     #################
-    j = []
+    train_j = []
     for sample, target in zip(X_train, Y_train):
         # split text sample into words/tokens 
         b = textproc.word_tokeniser(sample)
@@ -509,23 +513,57 @@ for epoch in range(epochs):
         
         # Measure the training error (loss function) between the actual
         # sentiment (the truth) and the prediction by the model.
-        y_pred = caches['fc_values'][0][0]
+        y_pred = caches['fc_values'][0][0][0][0]
         loss = loss_f(y_pred, target)
 
         # Store training set losses
-        j.append(loss)
-        
-    # Calculate average of training losses for one epoch
-    mean_cost = np.mean(j)
-    training_losses.append(mean_cost)
-    print(f'Epoch {epoch + 1} finished. \t  Loss : {mean_cost}')
+        train_j.append(loss)
 
+    #################
+    # Evaluation step #
+    #################
+    
+    test_j = []
+    for sample, target in zip(X_test, Y_test):
+        # split text sample into words/tokens 
+        b = textproc.word_tokeniser(sample)
+
+        # Forward propagation/forward pass:
+        caches = forward_prop(b, parameters)
+
+        # Measure the testing error (loss function) between the actual
+        # sentiment (the truth) and the prediction by the model.
+        y_pred = caches['fc_values'][0][0][0][0]
+        loss = loss_f(y_pred, target)
+
+        # Store testing set losses
+        test_j.append(loss)
+        
+    # Calculate average of training and testing losses for one epoch
+    mean_train_cost = np.mean(train_j)
+    mean_test_cost = np.mean(test_j)
+    training_losses.append(mean_train_cost)
+    testing_losses.append(mean_test_cost)
+    print(f'Epoch {epoch + 1} finished. \t  Training Loss : {mean_train_cost} \t  Testing Loss : {mean_test_cost}')
+    
 # save the trained parameters to a npy file 
 np.save('parameters.npy',parameters)
+```
+
+It is a good practice to plot the training and testing losses as the learning curves are often helpful in diagnosing the behaviour of a Machine Learning model.
+
+```{code-cell} ipython3
 # plot the training loss
-plt.plot([i for i in range(len(training_losses))], training_losses)
-plt.xlabel("training iterations")
-plt.ylabel("training loss")
+plt.plot([i for i in range(len(training_losses))], training_losses, label = 'training loss')
+# plot the testing loss
+plt.plot([i for i in range(len(testing_losses))], testing_losses, label = 'testing loss')
+
+# set the x and y labels
+plt.xlabel("epochs")
+plt.ylabel("loss")
+
+plt.legend(title='labels', bbox_to_anchor=(1.0, 1), loc='upper left')
+plt.show()
 ```
 
 ### Sentiment Analysis on the Speech Data
@@ -549,29 +587,29 @@ parameters = np.load('parameters.npy', allow_pickle='TRUE').item()
 for index, text in enumerate(X_pred):
     
     paras = textproc.text_to_paras(text, para_len)
-    pred_sents = []
+    preds = []
     
     for para in paras:
         # split text sample into words/tokens 
         para_tokens = textproc.word_tokeniser(para)
+        
         # Forward Propagation
         caches = forward_prop(para_tokens, parameters)
     
         # Retrieve the output of the fully connected layer 
         sent_prob = caches['fc_values'][0][0][0][0]
-        pred_sents.append(sent_prob)
+        preds.append(sent_prob)
 
     threshold = 0.5
-    pred_sents = np.array(pred_sents)
+    preds = np.array(preds)
     # Mark all predictions > threshold as positive and < threshold as negative 
-    pred = np.zeros(pred_sents.shape)
-    pos_indices = np.where(pred_sents > threshold)  # indices where output > 0.5
-    neg_indices = np.where(pred_sents < threshold)  # indices where output < 0.5
+    pos_indices = np.where(preds > threshold)  # indices where output > 0.5
+    neg_indices = np.where(preds < threshold)  # indices where output < 0.5
     # Store predictions and corresponding piece of text
     predictions[speakers[index]] = {'pos_paras': paras[pos_indices[0]], 'neg_paras': paras[neg_indices[0]]}
 ```
 
-Visualising our predictions using `Matplotlib`:
+Visualising our predictions:
 
 ```{code-cell} ipython3
 x_axis = []
@@ -637,7 +675,3 @@ Finally, to know more about how ethics come into play when developing a machine 
 - Data ethics resources by the Turing Institute. https://www.turing.ac.uk/research/data-ethics
 - Considering how artificial intelligence shifts power, an [article](https://www.nature.com/articles/d41586-020-02003-2) and [talk](https://slideslive.com/38923453/the-values-of-machine-learning) by Pratyusha Kalluri
 - More ethics resources on [this blog post](https://www.fast.ai/2018/09/24/ai-ethics-resources/) by Rachel Thomas and the [Radical AI podcast](https://www.radicalai.org/)
-
-```{code-cell} ipython3
-
-```
