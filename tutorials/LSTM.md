@@ -136,6 +136,25 @@ Define a class to perform the aforementioned text preprocessing and conversion t
 ```{code-cell} ipython3
 :tags: [hide-cell]
 
+# Taken from https://gist.github.com/Zsailer/5d1f4e357c78409dd9a5a4e5c61be552
+from IPython.display import HTML
+from IPython.display import display
+
+tag = HTML('''<script>
+code_show=true; 
+function code_toggle() {
+    if (code_show){
+        $('div.cell.code_cell.rendered.selected div.input').hide();
+    } else {
+        $('div.cell.code_cell.rendered.selected div.input').show();
+    }
+    code_show = !code_show
+} 
+$( document ).ready(code_toggle);
+</script>
+To show/hide this cell's raw code input, click <a href="javascript:code_toggle()">here</a>.''')
+display(tag)
+
 class TextPreprocess:
     """Text Preprocessing for a Natural Language Processing model."""
 
