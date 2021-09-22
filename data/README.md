@@ -35,7 +35,7 @@ We made sure to include different demographics in our data and included a range 
 | UN Speech on youth Education                     | Malala Yousafzai        | The Guardian                                               |
 | Remarks in the UNGA on racial discrimination     | Linda Thomas Greenfield | United States mission to the United Nation                 |
 | How Dare You                                     | Greta Thunberg          | NBC - official website                                     |
-| The speech that silenced the world for 5 minutes | Severn Suzuki           | EarthCharter                                               |
+| The speech that silenced the world for 5 minutes | Severn Suzuki           | Earth Charter                                               |
 | The Hope Speech                                  | Harvey Milk             | University of Maryland - official website                  |
 | Speech at the time to Thrive Conference          | Ellen Page              | Huffpost                                                   |
 | I have a dream                                   | Martin Luther King      | Marshall University - official website                     |
