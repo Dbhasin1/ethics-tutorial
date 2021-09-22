@@ -31,11 +31,11 @@ We made sure to include different demographics in our data and included a range 
 
 | Speech                                           | Speaker                 | Source                                                     |
 |--------------------------------------------------|-------------------------|------------------------------------------------------------|
-| Barnard College Commencement                     | Leymah Gbowee           | Barnard College - official website                         |
-| UN Speech on youth Education                     | Malala Yousafzai        | The Guardian                                               |
-| Remarks in the UNGA on racial discrimination     | Linda Thomas Greenfield | United States mission to the United Nation                 |
-| How Dare You                                     | Greta Thunberg          | NBC - official website                                     |
-| The speech that silenced the world for 5 minutes | Severn Suzuki           | Earth Charter                                               |
-| The Hope Speech                                  | Harvey Milk             | University of Maryland - official website                  |
-| Speech at the time to Thrive Conference          | Ellen Page              | Huffpost                                                   |
-| I have a dream                                   | Martin Luther King      | Marshall University - official website                     |
+| Barnard College Commencement                     | Leymah Gbowee           | [Barnard College](https://barnard.edu/news/transcript-speech-nobel-peace-prize-winner-leymah-gbowee)                         |
+| UN Speech on youth Education                     | Malala Yousafzai        | [The Guardian](https://www.theguardian.com/commentisfree/2013/jul/12/malala-yousafzai-united-nations-education-speech-text)                                              |
+| Remarks in the UNGA on racial discrimination     | Linda Thomas Greenfield | [United States mission to the United Nation](https://usun.usmission.gov/remarks-by-ambassador-linda-thomas-greenfield-at-a-un-general-assembly-commemorative-meeting-for-intl-day-for-the-elimination-of-racial-discrimination/)                 |
+| How Dare You                                     | Greta Thunberg          | [NBC](https://www.nbcnews.com/news/world/read-greta-thunberg-s-full-speech-united-nations-climate-action-n1057861)                                   |
+| The speech that silenced the world for 5 minutes | Severn Suzuki           | [Earth Charter](https://earthcharter.org/new-voices-after-26-years-of-the-girl-who-silenced-the-world-for-5-minutes/)                                             |
+| The Hope Speech                                  | Harvey Milk             | [Museum of Fine Arts, Boston](https://www.mfa.org/exhibitions/amalia-pica/transcript-harvey-milks-the-hope-speech)                 |
+| Speech at the time to Thrive Conference          | Ellen Page              | [Huffpost](https://www.huffpost.com/entry/time-to-thrive_b_4794251)                                                  |
+| I have a dream                                   | Martin Luther King      | [Marshall University](https://www.marshall.edu/onemarshallu/i-have-a-dream/)                    |
