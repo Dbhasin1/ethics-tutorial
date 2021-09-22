@@ -309,8 +309,8 @@ You will need two files for the initial preprocessing:
 
 ```{code-cell} ipython3
 # Assign the path on your local system where these files reside  
-imdb_data_path = 'tutorial-nlp-from-scratch/IMDB Dataset.csv'
-emb_path = 'tutorial-nlp-from-scratch/glove.6B.50d.txt'
+imdb_data_path = '../data/IMDB Dataset.csv'
+emb_path = '../data/glove.txt'
 ```
 
 Next, you will load the IMDB dataset into a dataframe using Pandas
@@ -340,7 +340,7 @@ X_train, Y_train, X_test, Y_test = textproc.split_data(X, y, split_percentile=5)
 You can apply the same process to the speeches in our dataset:
 
 ```{code-cell} ipython3
-speech_data_path = 'tutorial-nlp-from-scratch/speeches.csv'
+speech_data_path = '../data/speeches.csv'
 speech_df = pd.read_csv(speech_data_path)
 X_pred = textproc.cleantext(speech_df, 
                             text_column='speech', 
